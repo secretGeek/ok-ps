@@ -10,7 +10,7 @@ function ok {
        )]$arg
   )
   # this is a private function used by ok
-  # given a filename (a file full of commands) and a number (possibly null) and some remaining parameters: 
+  # given a filename (a file full of commands) and a number (possibly null) and some remaining parameters:
   #   invoke the numbered command (if a number was given) or display a numbered list of the commands
   function ok_file($file, $number, $arg) {
     $commands = @{};
@@ -41,7 +41,7 @@ function ok {
       }
     } else {
       # LIST the commands
-      $commands.GetEnumerator() | sort-object { [int]$_.Name }  | % { 
+      $commands.GetEnumerator() | sort-object { [int]$_.Name }  | % {
         write-host -NoNewline ($_.Name + ". ") -foregroundcolor "white"
         $line = $_.Value
         if ($line.indexOf('#') -ge 0) {
@@ -60,17 +60,16 @@ function ok {
   if (test-path ".\.ok") { ok_file ".\.ok" $number $arg}
 }
 
-
-# Remove the 'cd' alias, so our function can take over...
-if (test-path alias:cd) {
-    Remove-Item alias:cd -Force
-}
-
-# We create our `cd` function as a wrapper around set-location that calls 'ok'
-function cd ([parameter(ValueFromRemainingArguments = $true)][string]$Passthrough) {
-  Set-Location $Passthrough
-  ok # Call 'ok'
-}
-
-# consider: do the same for pushd and popd...?
-# Consider: also check parent folders (recursively)
+## Consider: Remove the 'cd' alias, so our function can take over...
+#    if (test-path alias:cd) {
+#        Remove-Item alias:cd -Force
+#    }
+#
+## We create our `cd` function as a wrapper around set-location that calls 'ok'
+#    function cd ([parameter(ValueFromRemainingArguments = $true)][string]$Passthrough) {
+#        Set-Location $Passthrough
+#        ok # Call 'ok'
+#    }
+#
+## Consider: do the same for pushd and popd...?
+## Consider: also check parent folders (recursively)
