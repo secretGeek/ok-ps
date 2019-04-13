@@ -1,9 +1,14 @@
 # with no parameter: looks in the current folder for a ".ok" file, and lists its commands numbered
 # with a number parameter, runs the relevant command from the .ok file, e.g. "ok 1" runs first line of ".ok" file
-function ok([parameter(mandatory=$false, position=0)]$number,
-    [parameter(mandatory=$false, position=1, ValueFromRemainingArguments=$true)]$arg
-) {
-
+function ok {
+  param (
+      [parameter(mandatory=$false, position=0)]$number,
+      [parameter(
+          mandatory=$false, 
+          position=1, 
+          ValueFromRemainingArguments=$true
+       )]$arg
+  )
   # this is a private function used by ok
   # given a filename (a file full of commands) and a number (possibly null) and some remaining parameters: 
   #   invoke the numbered command (if a number was given) or display a numbered list of the commands
