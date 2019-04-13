@@ -1,12 +1,14 @@
-﻿# ok-ps
+# ok-ps
 
 ## "ok" gives you .ok folder profiles for powershell
+
+(There is also a [bash version](https://github.com/secretGeek/ok-bash/))
 
 `ok` makes you smarter and more efficient.
 
 Do you work on many different projects? And in each project, are there commands you use that are specific to that project? You need a `.ok` file.
 
-A `.ok` file holds a bunch of handy one-liners, specific to the folder it is in. It can be viewed with a simple command. Any command can be executed with the command `ok {number}` (example, `ok 3` to run the 3rd command.)
+A `.ok` file is a place to store any handy one-liners specific to the folder it is in. It can be viewed with a simple command. And commands in the `.ok` file can be executed immediately with the command `ok {number}` (example, `ok 3` to run the 3rd command.)
 
 Imagine your `.ok` file contains these three lines:
 
@@ -42,7 +44,7 @@ And you can pass simple arguments to the commands. For example:
 	Pushing to master.
 
 
-💡 Tip: "." (i.e. source) the "_ok.ps1" script from your `$profile` (.bashrc), e.g:
+💡 Tip: "." (i.e. source) the "_ok.ps1" script from your `$profile`, e.g:
 
     . .\_ok.ps1
 
