@@ -33,7 +33,6 @@ function ok {
         } else {
           write-host $expression -foregroundcolor "white"
         }
-
         invoke-expression $expression;
       } else {
         write-host "'$number' needs to be <= $num" -foregroundcolor "red"
@@ -48,11 +47,9 @@ function ok {
           # write things before the # in one color and things after in green
           write-host -NoNewline (($line -split '#')[0])
           write-host $line.substring($line.indexOf('#')) -foregroundcolor "green"
-          # write-host -NoNewline ($_.Name + ". ") -foregroundcolor "white"
         } else {
           write-host $_.Value
         }
-        #$_.Name + ". " + $_.Value
       }
     }
   }

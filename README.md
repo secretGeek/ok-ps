@@ -6,7 +6,7 @@
 
 `ok` makes you smarter and more efficient.
 
-Do you work on many different projects? And in each project, are there commands you use that are specific to that project? You need a `.ok` file.
+Do you work on many different projects? And in each project, are there commands or URLs you use that are specific to that project? You need a `.ok` file.
 
 A `.ok` file is a place to store any handy one-liners specific to the folder it is in. It can be viewed with a simple command. And commands in the `.ok` file can be executed immediately with the command `ok {number}` (example, `ok 3` to run the 3rd command.)
 
