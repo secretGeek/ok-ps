@@ -18,8 +18,10 @@ function ok {
     cat $file | % {
       $line = $_.trim();
       if ($line -ne "" -and $line -ne $null) { 
-        $num = $num + 1;
-        $commands.Add(("" + $num), $line);
+        if ($line.indexOf('#') -gt 0) {
+          $num = $num + 1;
+          $commands.Add(("" + $num), $line);
+        }
       }
     }
     if ($number -ne $null -and $num -ge 1) {
@@ -39,16 +41,19 @@ function ok {
         ok_file $file
       }
     } else {
+      # Get length of longest command
+      $maxCommandLength = (($commands.Values | % { ($_ -split '#')[0] } | % { $_.Length }) | Measure-Object -Maximum ).Maximum
       # LIST the commands
-      $commands.GetEnumerator() | sort-object { [int]$_.Name }  | % {
-        write-host -NoNewline ($_.Name + ". ") -foregroundcolor "white"
-        $line = $_.Value
-        if ($line.indexOf('#') -ge 0) {
-          # write things before the # in one color and things after in green
-          write-host -NoNewline (($line -split '#')[0])
-          write-host $line.substring($line.indexOf('#')) -foregroundcolor "green"
+      $num = 0;
+      cat $file | % {
+        $command, $comment = $_.trim() -split '#'
+        if ($command) {
+          $num = $num + 1
+          Write-Host -NoNewLine "$num. " -foregroundcolor "white"
+          Write-Host -NoNewLine $command.PadRight($maxCommandLength, " ") -foregroundcolor "white"
+          Write-Host "#$comment" -foregroundcolor "green"
         } else {
-          write-host $_.Value
+          Write-Host "#$comment" -foregroundcolor "green"
         }
       }
     }
