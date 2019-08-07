@@ -15,10 +15,10 @@ function ok {
   function ok_file($file, $number, $arg) {
     $commands = @{};
     $num = 0;
-    cat $file | % {
+    type $file | % {
       $line = $_.trim();
       if ($line -ne "" -and $line -ne $null) { 
-        if ($line.indexOf('#') -gt 0) {
+        if ($line.indexOf('#') -ne 0) {
           $num = $num + 1;
           $commands.Add(("" + $num), $line);
         }
@@ -43,17 +43,20 @@ function ok {
     } else {
       # Get length of longest command
       $maxCommandLength = (($commands.Values | % { ($_ -split '#')[0] } | % { $_.Length }) | Measure-Object -Maximum ).Maximum
+      $maxCommentLength = (($commands.Values | % { ($_ -split '#')[1] } | % { $_.Length }) | Measure-Object -Maximum ).Maximum
       # LIST the commands
       $num = 0;
-      cat $file | % {
-        $command, $comment = $_.trim() -split '#'
+      type $file | % {
+        $command, $comment = $_.trim() -split '#' | % { $_.trim() }
         if ($command) {
           $num = $num + 1
           Write-Host -NoNewLine "$num. " -foregroundcolor "white"
-          Write-Host -NoNewLine $command.PadRight($maxCommandLength, " ") -foregroundcolor "white"
-          Write-Host "#$comment" -foregroundcolor "green"
+          Write-Host -NoNewLine $command.PadRight($maxCommandLength + 1, " ") -foregroundcolor "white"
+          if ($comment) { Write-Host "# $comment" -foregroundcolor "green" }
+          else { Write-Host "" }
         } else {
-          Write-Host "#$comment" -foregroundcolor "green"
+          if ($comment) { Write-Host "# $comment" -foregroundcolor "green" }
+          else { Write-Host "" }
         }
       }
     }
