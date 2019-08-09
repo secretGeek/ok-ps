@@ -44,6 +44,7 @@ function ok {
       # Get length of longest command
       $maxCommandLength = (($commands.Values | % { ($_ -split '#')[0] } | % { $_.Length }) | Measure-Object -Maximum ).Maximum
       $maxCommentLength = (($commands.Values | % { ($_ -split '#')[1] } | % { $_.Length }) | Measure-Object -Maximum ).Maximum
+      $maxCommandLength = [Math]::Min($Host.UI.RawUI.WindowSize.Width -  $maxCommentLength - 5, $maxCommandLength)
       # LIST the commands
       $num = 0;
       type $file | % {
@@ -62,7 +63,9 @@ function ok {
     }
   }
   
-  if (test-path ".\.ok") { ok_file ".\.ok" $number $arg}
+  if (test-path ".\.ok") {
+    ok_file ".\.ok" $number $arg
+  }
 }
 
 ## Consider: Remove the 'cd' alias, so our function can take over...
