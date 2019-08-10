@@ -41,7 +41,7 @@ function ok {
         ok_file $file
       }
     } else {
-      # Get length of longest command
+      # Get length of longest command/comment
       $maxCommandLength = (($commands.Values | % { ($_ -split '#')[0] } | % { $_.Length }) | Measure-Object -Maximum ).Maximum
       $maxCommentLength = (($commands.Values | % { ($_ -split '#')[1] } | % { $_.Length }) | Measure-Object -Maximum ).Maximum
       $maxCommandLength = [Math]::Min($Host.UI.RawUI.WindowSize.Width -  $maxCommentLength - 5, $maxCommandLength)
@@ -51,7 +51,7 @@ function ok {
         $command, $comment = $_.trim() -split '#' | % { $_.trim() }
         if ($command) {
           $num = $num + 1
-          Write-Host -NoNewLine "$num. " -foregroundcolor "white"
+          Write-Host -NoNewLine "$num. " -foregroundcolor "yellow"
           Write-Host -NoNewLine $command.PadRight($maxCommandLength + 1, " ") -foregroundcolor "white"
           if ($comment) { Write-Host "# $comment" -foregroundcolor "green" }
           else { Write-Host "" }
