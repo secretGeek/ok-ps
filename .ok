@@ -1,6 +1,6 @@
 . .\_ok.ps1 # Install OK
-Get-Content README.md  # see instructions
-git add *; git commit . -m "$($arg[0])"; git out; git push;  # commit -- add message
+Get-Content README.md  # README
+git add *; git commit . -m "$arg"; git out; git push;  # commit -- add message
 # Use Script Analyzer to lint the code
 Invoke-ScriptAnalyzer .\_ok.ps1 -Ex PSAvoidUsingWriteHost | Count # how many messages from script analyzer?
 Invoke-ScriptAnalyzer .\_ok.ps1 -Ex PSAvoidUsingWriteHost | group-object -property severity # How many of each severity?
