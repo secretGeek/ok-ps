@@ -1,11 +1,12 @@
 # with no parameter: looks in the current folder for a ".ok" file, and lists its commands numbered
 # with a number parameter, runs the relevant command from the .ok file, e.g. "ok 1" runs first line of ".ok" file
 function ok {
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingInvokeExpression", "")]
   param (
       [parameter(mandatory=$false, position=0)]$number,
       [parameter(
-          mandatory=$false, 
-          position=1, 
+          mandatory=$false,
+          position=1,
           ValueFromRemainingArguments=$true
        )]$arg
   )
@@ -15,16 +16,16 @@ function ok {
   function ok_file($file, $number, $arg) {
     $commands = @{};
     $num = 0;
-    type $file | % {
+    Get-Content $file | ForEach-Object {
       $line = $_.trim();
-      if ($line -ne "" -and $line -ne $null) { 
+      if ($line -ne "" -and $null -ne $line) {
         if ($line.indexOf('#') -ne 0) {
           $num = $num + 1;
           $commands.Add(("" + $num), $line);
         }
       }
     }
-    if ($number -ne $null -and $num -ge 1) {
+    if ($null -ne $number -and $num -ge 1) {
       if ($number -le $num) {
         # INVOKE the command (after pretty-printing it)
         $expression = $commands[("" + $number)];
@@ -42,13 +43,13 @@ function ok {
       }
     } else {
       # Get length of longest command/comment
-      $maxCommandLength = (($commands.Values | % { ($_ -split '#')[0] } | % { $_.Length }) | Measure-Object -Maximum ).Maximum
-      $maxCommentLength = (($commands.Values | % { ($_ -split '#')[1] } | % { $_.Length }) | Measure-Object -Maximum ).Maximum
+      $maxCommandLength = (($commands.Values | ForEach-Object { ($_ -split '#')[0] } | ForEach-Object { $_.Length }) | Measure-Object -Maximum ).Maximum
+      $maxCommentLength = (($commands.Values | ForEach-Object { ($_ -split '#')[1] } | ForEach-Object { $_.Length }) | Measure-Object -Maximum ).Maximum
       $maxCommandLength = [Math]::Min($Host.UI.RawUI.WindowSize.Width -  $maxCommentLength - 5, $maxCommandLength)
       # LIST the commands
       $num = 0;
-      type $file | % {
-        $command, $comment = $_.trim() -split '#' | % { $_.trim() }
+      Get-Content $file | ForEach-Object {
+        $command, $comment = $_.trim() -split '#' | ForEach-Object { $_.trim() }
         if ($command) {
           $num = $num + 1
           Write-Host -NoNewLine "$num. " -foregroundcolor "yellow"
@@ -62,22 +63,11 @@ function ok {
       }
     }
   }
-  
+
   if (test-path ".\.ok") {
-    ok_file ".\.ok" $number $arg
+    ok_file -file ".\.ok" -number $number -arg $arg
+		#$file, $number, $arg
   }
 }
 
-## Consider: Remove the 'cd' alias, so our function can take over...
-#    if (test-path alias:cd) {
-#        Remove-Item alias:cd -Force
-#    }
-#
-## We create our `cd` function as a wrapper around set-location that calls 'ok'
-#    function cd ([parameter(ValueFromRemainingArguments = $true)][string]$Passthrough) {
-#        Set-Location $Passthrough
-#        ok # Call 'ok'
-#    }
-#
-## Consider: do the same for pushd and popd...?
-## Consider: also check parent folders (recursively)
+
