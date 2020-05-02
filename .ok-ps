@@ -1,0 +1,20 @@
+
+install: ". .\Invoke-OKCommand.ps1" | clipp; # Install OK
+inst: "HEY!!!"
+inst: "HEY!!!"
+in: "HEY!"
+Get-Content README.md  # README
+dep:Get-Dependencies
+git add *; git commit . -m "$arg"; git out; git push;  # commit -- add message
+# Use Script Analyzer to lint the code
+Invoke-ScriptAnalyzer .\Invoke-OKCommand.ps1 -Ex PSAvoidUsingWriteHost | Count # how many messages from script analyzer?
+Invoke-ScriptAnalyzer .\Invoke-OKCommand.ps1 -Ex PSAvoidUsingWriteHost | group-object -property severity # How many of each severity?
+Invoke-ScriptAnalyzer .\Invoke-OKCommand.ps1 -Ex PSAvoidUsingWriteHost | group RuleName | sort count -d | ft Name, Count # Each type
+Invoke-ScriptAnalyzer .\Invoke-OKCommand.ps1 -ExcludeRule PSAvoidUsingWriteHost
+
+# Test Show Highlighted
+"dir | % {`necho   `@`"`nhi`n`n`nthere`n`"`@`n } #  etc" | clipp; echo "now paste it..."
+"dir | % {`necho   `@`"`nhi`n`n`nthere`n`"`@`n } #  etc" | Get-token | ft
+"dir | % {`necho   `@`"`nhi`n`n`nthere`n`"`@`n } #  etc" | Get-Token | Show-HighlightedToken
+"dir | % {`necho   `@`"`nhi`n`n`nthere`n`"`@`n } #  etc" | Get-Token | % { Show-HighlightedToken $_ }
+ok 9;c;ok 10;ok 11;

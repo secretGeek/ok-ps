@@ -1,142 +1,218 @@
-
-. (Join-Path $PSScriptRoot "Show-HighlightedCode.ps1")
+. (Join-Path $PSScriptRoot "Get-Token.ps1")
 . (Join-Path $PSScriptRoot "Get-CommandLength.ps1")
+. (Join-Path $PSScriptRoot "Show-HighlightedCode.ps1")
 
-# with no parameter: looks in the current folder for a ".ok" file, and lists its commands numbered
-# with a number parameter, runs the relevant command from the .ok file, e.g. "ok 1" runs first line of ".ok" file
-
-function ok { 
-	Invoke-OKCommand $args
+Enum OKCommandType {
+    Comment = 1
+    Numbered = 2
+    Named = 3
 }
 
-function Invoke-OKCommand {
-  [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingInvokeExpression", "")]
-  param (
-      [parameter(mandatory=$false, position=0)]$number,
-      [parameter(
-          mandatory=$false,
-          position=1,
-          ValueFromRemainingArguments=$true
-       )]$arg
-  )
+Class OKCommandInfo {
+    [int]$physicalLineNum # 1-based
+    [OKCommandType]$type # what type of line is this? A comment, numbered or named
+    #[int]$commandNumber # also 1-based, only populated for OKcommandType.Numbered
+    #[string]$commandName # only populated for OKcommandType.Named
+    [string]$commandText # everything other than the command name
+    [string]$key # either ("" + $number) or $commandName
+    [System.Management.Automation.PSToken[]]$tokens
+    [int]$commentOffset # how many chars from the start of the line to the first comment token
+}
 
-  # this is a private function used by ok
-  # given a filename (a file full of commands) and a number (possibly null) and some remaining parameters:
-  #   invoke the numbered command (if a number was given) or display a numbered list of the commands
-  function ok_file($file, $number, $arg) {
-    $commands = @{};
+Class OKFileInfo {
+    [string]$fileName; # fileName
+    [Hashtable]$commands; # hashtable of OKCommandInfo
+    [OKCommandInfo[]]$lines; # Commands, in the order they are found in the file
+    [int]$maxKeyWidth; # what is the widest command name
+    [int]$commentOffset; 
+}
+
+function Get-OKCommands($file) {
+    # TODO: parameter validation
+    $commands = @{ };
+
+    $lines = New-Object System.Collections.ArrayList
+    [regex]$rx = "^[ `t]*(?<commandName>[A-Za-z_][A-Za-z0-9-_]*)[ `t]*\:(?<commandText>.*)$";
+
     $num = 0;
+    $physicalLineNum = 0;
+
     Get-Content $file | ForEach-Object {
-      $line = $_.trim();
-      if ($line -ne "" -and $null -ne $line) {
-        if ($line.indexOf('#') -ne 0) {
-          $num = $num + 1;
-          $commands.Add(("" + $num), $line);
+        $line = $_.trim();
+        $physicalLineNum = $physicalLineNum + 1;
+        if ($null -eq $line -or $line -eq "") {
+            # blank line
         }
-      }
+        else {
+            $commandInfo = new-object OKCommandInfo
+            $commandInfo.physicalLineNum = $physicalLineNum;
+
+            if ($line.indexOf('#') -eq 0) {
+                $commandInfo.type = [OKCommandType]::Comment
+                $commandInfo.commandText = $line;
+            }
+            else {
+                $groups = $rx.Matches($line).Groups;
+                if ($null -ne $groups) {
+                    $commandInfo.type = [OKCommandType]::Named
+                    $commandInfo.commandText = $groups[0].Groups["commandText"].Value.Trim();
+                    
+                    $key = $groups[0].Groups["commandName"].Value.Trim();
+                    if ($null -ne $commands[$key]) {
+                        $num = $num + 1;
+                        <#
+                        write-host "ok: duplicate commandname '" -f Red -no;
+                        write-host "$key" -f white -no;
+                        write-host "' mapped to " -f Red -no;
+                        write-host "$num" -f white;
+                        #>
+                        $key = ("" + $num);
+                        $commandInfo.type = [OKCommandType]::Numbered
+                    }
+                    $commandInfo.key = $key;
+                }
+                else {
+                    $num = $num + 1;
+                    $commandInfo.type = [OKCommandType]::Numbered
+                    $commandInfo.commandText = $line
+                    $commandInfo.key = ("" + $num);
+                }
+                $maxKeyWidth = [math]::max( $maxKeyWidth , $commandInfo.key.length );
+                $commandInfo.Tokens = (Get-Token $commandInfo.commandText);
+                $commands.Add($commandInfo.key, $commandInfo) | out-null;
+            }
+            $lines.Add($commandInfo) | out-null;
+        }
     }
-    if ($null -ne $number -and $num -ge 1) {
-      if ($number -le $num) {
-        # INVOKE the command (after pretty-printing it)
-        $expression = $commands[("" + $number)];
-        ok_prettyPrint $expression
-        invoke-expression $expression;
-      } else {
-        write-host "'$number' needs to be <= $num" -foregroundcolor "red"
-        ok_file $file
-      }
+
+    #TODO: this will be configurable
+    $alignComments = $true;
+    if ($alignComments) {
+        $maxCommandLength = ($commands.Values | ForEach-Object { 
+                [OKCommandInfo]$c = $_;
+                Get-CommandLength ($c.tokens)
+            } | Measure-Object -Maximum | ForEach-Object Maximum);
+    
+        $maxCommentLength = ($commands.Values | ForEach-Object { 
+                [OKCommandInfo]$c = $_;
+                ($c.key.length + 2) + ($c.CommandText.Length) - (Get-CommandLength ($c.tokens));
+            } | Measure-Object -Maximum | ForEach-Object Maximum);
+        # the "- 2" is the width of the ": " after each command.
+        $commentOffset = [Math]::Min($Host.UI.RawUI.WindowSize.Width - 2 - $maxCommentLength - $maxKeyLength, $maxCommandLength)
+    }
+    else {
+        $commentOffset = 0;
+    }
+
+    $fileInfo = New-Object OKFileInfo;
+    $fileInfo.fileName = $file;
+    $fileInfo.commands = $commands;
+    $fileInfo.lines = $lines;
+    $fileInfo.maxKeyWidth = $maxKeyWidth;
+    $fileInfo.commentOffset = $commentOffset;
+    return $fileInfo;
+}
+
+
+function Show-OKFile($commandInfo) {
+    $maxKeyWidth = $commandInfo.maxKeyWidth;
+    $commandInfo.lines | Foreach-Object {
+        [OKCommandInfo]$c = $_;
+        if ($c.Type -eq [OKCommandType]::Comment) {
+            write-host $c.commandText -f Green
+        }
+        else {
+            #$c.Type -eq [OKCommandType]::Comment
+            write-host (" " * ($maxKeyWidth - $c.key.length)) -f cyan -NoNewline
+            write-host $c.key -f cyan -NoNewline
+            write-host ": " -f gray -NoNewline
+            
+            Show-HighlightedOKCode -code $c.commandText -CommentOffset $commandInfo.commentOffset;
+            write-host "";
+        }
+    }    
+}
+
+
+#$maxCommandNum = $num;
+function Invoke-OKCommand($commandInfo, $commandName) {
+  
+    #TODO: what if it's not a valid command? 
+    # see if it's close to valid... get candidates if exactly 1 -- run it.
+    # if more than 1 -- say "did you mean" and show those.
+    # if it's less than 1 -- error... show file.
+    $command = $commandInfo.commands[("" + $commandName)];
+    if ($null -eq $command) {
+        $candidates = New-Object System.Collections.ArrayList
+
+        $commandInfo.commands.keys | 
+        Where-Object { $_ -like ($commandName + "*") } | 
+        Foreach-Object {
+            $candidates.Add($_) | out-null;
+        }
+        if ($null -eq $candidates -or $candidates.Count -eq 0) {
+            Write-host "ok: unknown command " -f Red -no
+            write-host "'" -no;
+            write-host "$commandName" -f yellow -no;
+            write-host "'";
+            Write-host "(use 'ok' for a list of local commands, or 'ok help' for general commands)"
+            return;
+        }
+        if ($candidates.Count -gt 1) {
+            Write-host "ok: command '$commandName' is ambiguous, did you mean:`n`t" -no
+            #$candidates;
+            $candidates | ForEach-Object {
+                write-host "$($_) " -no -f yellow
+            }
+            return;
+        }
+        write-host "ok: No such command! " -f Yellow -NoNewLine
+        write-host "Assume you meant: " -f gray -NoNewline
+        write-host "'$($candidates[0])'" -f White -NoNewLine
+        write-host "..." -f gray
+        $command = $commandInfo.commands[("" + $candidates[0])];
+    }
+    write-host "> " -f Magenta -NoNewline;
+    Show-HighlightedOKCode -code $command.commandText -CommentOffset $command.commentOffset;
+    write-host "";
+  
+    invoke-expression $command.commandText;
+}
+
+function Invoke-OK($commandName) {
+    if (test-path ".\.ok-ps") {
+        $file = ".\.ok-ps"
+		
+    } elseif (test-path ".\.ok") {
+        $file = ".\.ok"
     } else {
-      # Get length of longest command/comment
-      # todo: find actual longest command by parsing.
-<#
-      $maxCommentLength = 0;
-      $maxCommandLength = 0;
-      ($commands.Values | ForEach-Object {  
-        $code = $_; 
-        $tokens = (Get-Token $code);
-        $this_commandLength = (Get-CommandLength $tokens);
-        $this_commentLength = $code.Length - $this_commandLength;
-        New-Object psobject -property  @{commandLength = $this_commandLength; commentLength = $this_commentLength}
-      } Measure-Object 
-#>
-
-
-      $maxCommandLength = (($commands.Values | ForEach-Object { ($_ -split '#')[0] } | ForEach-Object { $_.Length }) | Measure-Object -Maximum ).Maximum
-      $maxCommentLength = (($commands.Values | ForEach-Object { ($_ -split '#')[1] } | ForEach-Object { $_.Length }) | Measure-Object -Maximum ).Maximum
-      $maxCommandLength = [Math]::Min($Host.UI.RawUI.WindowSize.Width -  $maxCommentLength - 5, $maxCommandLength)
-      # LIST the commands
-      $num = 0;
-      Get-Content $file | ForEach-Object {
-        $num += 1
-      if (ok_prettyPrint $_ $num) {
-      } else {
-        $num -= 1
-      }
-
-        #$command, $comment = $_.trim() -split '#' | ForEach-Object { $_.trim() }
-        #ok_prettyPrint $_ $num
-        #if ($command) {
-        #  $num = $num + 1
-        #  Write-Host -NoNewLine "$num. " -foregroundcolor "yellow"
-
-        #  Write-Host -NoNewLine $command.PadRight($maxCommandLength + 1, " ") -foregroundcolor "white"
-        #  if ($comment) { Write-Host "# $comment" -foregroundcolor "green" }
-        #  else { Write-Host "" }
-        #} else {
-        #  if ($comment) { Write-Host "# $comment" -foregroundcolor "green" }
-        #  else { Write-Host "" }
-        #}
-      }
+        $file = $null;
     }
-  }
-
-  if (test-path ".\.ok") {
-    ok_file -file ".\.ok" -number $number -arg $arg
-    #$file, $number, $arg
-  }
+    if ($null -ne $file) {
+        $commandInfo = (Get-OKCommands $file);
+        if ($null -eq $commandName) {
+            Show-OKFile $commandInfo;
+        } 
+        else {
+            Invoke-OKCommand $commandInfo ("" + $commandName);
+        }
+    }
 }
 
 
-# this is a resuable function, currently used only by `ok_file`, returns true if the expression contains code.
-function ok_prettyPrint {
-  [OutputType([bool])]
-  param($expression, $number)
+# TODO: export alias from module;
+Set-alias ok Invoke-OK;
 
-  if ($null -eq $number) {
-    write-host -NoNewline "> " -foregroundcolor "magenta" # impersonate prompt...
-    #Write-Host -NoNewLine "$number`: " -foregroundcolor "yellow"
-  } else {
-    Write-Host -NoNewLine "$number`: " -foregroundcolor "yellow"
-  }
+# TODO: export from module:
+# Invoke-OK
+# Get-OKCommands
+# Show-OKFile
+# Invoke-OKCommand
 
-  if ($expression.indexOf('#') -ge 0) {
-    write-host -NoNewline (($expression -split '#')[0]) -foregroundcolor "white"
-    write-host $expression.substring($expression.indexOf('#')) -foregroundcolor "green"
-    return $true;
-  } else {
-    write-host $expression -foregroundcolor "white"
-    return $false;
-  }
-}
-
-
-
-
-
-#function Get-Token($code, [ref]$errors) {
-
-
-
-# Get-Tokens "dir | % {`n `@`"`nhi`n`n`nthere`n`"`@`n}" | ft
-# Get-Tokens "dir | % {`n `@`"`nhi`n`n`nthere`n`"`@`n}" | Show-HighlightedToken
-# Get-Tokens "dir | % {`n `@`"`nhi`n`n`nthere`n`"`@`n}" | % { Show-HighlightedToken $_ }
-# "dir | % {`n `@`"`nhi`n`n`nthere`n`"`@`n}" | % { Get-Tokens $_ } | % { Show-HighlightedToken $_ }
-# "dir | % {`n `@`"`nhi`n`n`nthere`n`"`@`n}" | Get-Token | % { Show-HighlightedToken $_ }
-# "dir | % {`n `@`"`nhi`n`n`nthere`n`"`@`n}" | Get-Token | Show-HighlightedToken
-# "dir | % {`n`@`"`nhi`n`n`nthere`n`"`@`n } #  etc" | Get-Token |Show-HighlightedToken
-# "dir | % {`n`@`"`nhi`n`n`nthere`n`"`@`n } #  etc" | Get-Token | % { Show-HighlightedToken $_ }
-
-
-# "dir | % {`necho   `@`"`nhi`n`n`nthere`n`"`@`n } #  etc" | clipp; echo "now paste it..."
-# "dir | % {`necho   `@`"`nhi`n`n`nthere`n`"`@`n } #  etc" | Get-Token | Show-HighlightedToken
-# "dir | % {`necho   `@`"`nhi`n`n`nthere`n`"`@`n } #  etc" | Get-Token | % { Show-HighlightedToken $_ }
+# Don't export
+# Get-Token
+# Get-CommandLength -- nah way too specific to deserve sharing
+# Show-HighlightedOKCode -code $c.commandText -CommentOffset $commandInfo.commentOffset; -- too specific?
+# Show-HighlightedCode
+# Show-HighlightedToken
+# Show-HighlightedOKToken
