@@ -1,15 +1,26 @@
 # Todo items
 
+## Syntax highlighting
+
+- quotes around string tokens. (double? 
+
 ## Publish as module
 
 See [what is a module](https://til.secretgeek.net/powershell/module_what_is_it.html) and [how to publish a module](https://til.secretgeek.net/powershell/publish_module.html)
 
-* [ ] Make a module
-	* [ ] Implement a module `.psm1` file
-	* [ ] Ensure correct exports
-	* [ ] Requires renaming 
-* [ ] Publish a module
+- [ ] Make a module
+	- [ ] Implement a module `.psm1` file
+	- [ ] Ensure correct exports
+	- [ ] Requires renaming 
+- [ ] Publish to the powershell gallery
+	- see https://mcpmag.com/articles/2017/03/16/submit-module-to-the-powershell-gallery.aspx?m=1
 
+- note modules can export aliases 
+- see https://stackoverflow.com/questions/5677136/how-to-export-powershell-module-aliases-with-a-module-manifest
+
+## Let ok-ps by default try .ok-ps and .okin succession.
+
+- [ ] Let ok-ps by default try .ok-ps and .ok in succession.
 
 ## Done: Fix all warnings from Script Analyzer
 
@@ -84,3 +95,13 @@ To:
 [ok-bash](https://github.com/secretGeek/ok-bash) has a lot of amazing features thanks to [doeke](https://github.com/secretGeek/ok-bash/commits?author=doekman)
 
 Where appropriate they should be incorporated into `ok-ps`.
+
+
+
+
+## Name commands and use helper functions to call those names.
+
+* Get-OKCommand
+* Invoke-OKCommand
+
+
