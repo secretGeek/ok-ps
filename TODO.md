@@ -2,9 +2,54 @@
 
 ## Syntax highlighting
 
-- quotes around string tokens. (double? 
+- [x] quotes around string tokens. (double?)
+
+shows:
+
+  2: echo arg
+
+should be
+
+	echo $arg
+
+
+## Consistent name for user commands
+
+verbs
+commands
+custom commands
+user commands
+named commands
+
+
+## Don't let user commands collide with reserved commands
+
+from `ok-bash` -- all of these are used, so reserve them for future use.
+(any others?)
+
+	reset
+	prompt
+	prompt_default
+	auto_show
+	comment_align N
+	verbose
+	quiet
+	l
+	list
+	L
+	list-once
+	p
+	list-prompt
+	h
+	help
+	?, /? -? --? -h --h  (maybe these too)
+
+If person 
+
 
 ## Publish as module
+
+Defer until after commands/syntax/etc.
 
 See [what is a module](https://til.secretgeek.net/powershell/module_what_is_it.html) and [how to publish a module](https://til.secretgeek.net/powershell/publish_module.html)
 
@@ -97,9 +142,9 @@ To:
 Where appropriate they should be incorporated into `ok-ps`.
 
 
-
-
 ## Name commands and use helper functions to call those names.
+
+done.
 
 * Get-OKCommand
 * Invoke-OKCommand

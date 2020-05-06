@@ -23,9 +23,9 @@ But it's not just a document, it's executable.
 If you run the command `ok` (with no parameters) you'll see the file listed, with numbers against each command:
 
     > ok
-    1. build.ps1 # builds the project
-    2. deploy.ps1 # deploys the project
-    3. commit_push.ps1 $arg[0] # commit with comment, rebase and push
+    1: build.ps1             # builds the project
+    2: deploy.ps1            # deploys the project
+    3: commit_push.ps1 $arg  # commit with comment, rebase and push
 
 Then if you run `ok {number}` (ok followed by a number) you'll execute that line of the file.
 
@@ -35,8 +35,8 @@ Then if you run `ok {number}` (ok followed by a number) you'll execute that line
 
 And you can pass simple arguments to the commands. For example:
 
-	> ok 3 "Added laser guidance system"
-    > commit_push.ps1 $arg[0] # commit with comment, rebase and push
+	> ok 3 Added laser guidance system
+    > commit_push.ps1 $arg # commit with comment, rebase and push
 
 	Committing with comment "Added laser guidance system"
 	Commit succeeded.
@@ -44,9 +44,13 @@ And you can pass simple arguments to the commands. For example:
 	Pushing to master.
 
 
-💡 Tip: "." (i.e. source) the "_ok.ps1" script from your `$profile`, e.g:
+💡 Tip: "." (i.e. source) the "Invoke-OKCommand.ps1" script from your `$profile`, e.g:
 
-    . .\_ok.ps1
+    . .\Invoke-OKCommand.ps1
+
+It will give you the `ok` command (which is really an alias to `Invoke-OK`)
+
+
 
 -----
 

@@ -11,12 +11,10 @@ Enum OKCommandType {
 Class OKCommandInfo {
     [int]$physicalLineNum # 1-based
     [OKCommandType]$type # what type of line is this? A comment, numbered or named
-    #[int]$commandNumber # also 1-based, only populated for OKcommandType.Numbered
-    #[string]$commandName # only populated for OKcommandType.Named
-    [string]$commandText # everything other than the command name
+    [string]$commandText # everything other than the command name (if there is one)
     [string]$key # either ("" + $number) or $commandName
     [System.Management.Automation.PSToken[]]$tokens
-    [int]$commentOffset # how many chars from the start of the line to the first comment token
+    [int]$commentOffset # how many chars from the start of the command to the first comment token (useful to know this for aligning comments)
 }
 
 Class OKFileInfo {
@@ -24,10 +22,11 @@ Class OKFileInfo {
     [Hashtable]$commands; # hashtable of OKCommandInfo
     [OKCommandInfo[]]$lines; # Commands, in the order they are found in the file
     [int]$maxKeyWidth; # what is the widest command name
-    [int]$commentOffset; 
+    [int]$commentOffset;
 }
 
-function Get-OKCommands($file) {
+function Get-OKCommand($file) {
+
     # TODO: parameter validation
     $commands = @{ };
 
@@ -56,7 +55,7 @@ function Get-OKCommands($file) {
                 if ($null -ne $groups) {
                     $commandInfo.type = [OKCommandType]::Named
                     $commandInfo.commandText = $groups[0].Groups["commandText"].Value.Trim();
-                    
+
                     $key = $groups[0].Groups["commandName"].Value.Trim();
                     if ($null -ne $commands[$key]) {
                         $num = $num + 1;
@@ -88,12 +87,12 @@ function Get-OKCommands($file) {
     #TODO: this will be configurable
     $alignComments = $true;
     if ($alignComments) {
-        $maxCommandLength = ($commands.Values | ForEach-Object { 
+        $maxCommandLength = ($commands.Values | ForEach-Object {
                 [OKCommandInfo]$c = $_;
                 Get-CommandLength ($c.tokens)
             } | Measure-Object -Maximum | ForEach-Object Maximum);
-    
-        $maxCommentLength = ($commands.Values | ForEach-Object { 
+
+        $maxCommentLength = ($commands.Values | ForEach-Object {
                 [OKCommandInfo]$c = $_;
                 ($c.key.length + 2) + ($c.CommandText.Length) - (Get-CommandLength ($c.tokens));
             } | Measure-Object -Maximum | ForEach-Object Maximum);
@@ -126,27 +125,44 @@ function Show-OKFile($commandInfo) {
             write-host (" " * ($maxKeyWidth - $c.key.length)) -f cyan -NoNewline
             write-host $c.key -f cyan -NoNewline
             write-host ": " -f gray -NoNewline
-            
+
             Show-HighlightedOKCode -code $c.commandText -CommentOffset $commandInfo.commentOffset;
             write-host "";
         }
-    }    
+    }
 }
 
 
 #$maxCommandNum = $num;
-function Invoke-OKCommand($commandInfo, $commandName) {
-  
-    #TODO: what if it's not a valid command? 
+function Invoke-OKCommand { #($commandInfo, $commandName) {
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingInvokeExpression", "")]
+  param (
+      [parameter(mandatory=$false, position=0)][OKFileInfo]$okFileInfo,
+      [parameter(mandatory=$false, position=1)][string]$commandName,
+      [parameter(
+          mandatory=$false,
+          position=1,
+          ValueFromRemainingArguments=$true
+       )]$arg
+  )
+
+<#
+[parameter(
+          mandatory=$false,
+          position=1,
+          ValueFromRemainingArguments=$true
+       )]$arg
+#>
+    #TODO: what if it's not a valid command?
     # see if it's close to valid... get candidates if exactly 1 -- run it.
     # if more than 1 -- say "did you mean" and show those.
     # if it's less than 1 -- error... show file.
-    $command = $commandInfo.commands[("" + $commandName)];
+    $command = $okFileInfo.commands[("" + $commandName)];
     if ($null -eq $command) {
         $candidates = New-Object System.Collections.ArrayList
 
-        $commandInfo.commands.keys | 
-        Where-Object { $_ -like ($commandName + "*") } | 
+        $okFileInfo.commands.keys |
+        Where-Object { $_ -like ($commandName + "*") } |
         Foreach-Object {
             $candidates.Add($_) | out-null;
         }
@@ -170,31 +186,42 @@ function Invoke-OKCommand($commandInfo, $commandName) {
         write-host "Assume you meant: " -f gray -NoNewline
         write-host "'$($candidates[0])'" -f White -NoNewLine
         write-host "..." -f gray
-        $command = $commandInfo.commands[("" + $candidates[0])];
+        $command = $okFileInfo.commands[("" + $candidates[0])];
     }
     write-host "> " -f Magenta -NoNewline;
     Show-HighlightedOKCode -code $command.commandText -CommentOffset $command.commentOffset;
     write-host "";
-  
+
     invoke-expression $command.commandText;
 }
 
-function Invoke-OK($commandName) {
+function Invoke-OK #($commandName, $arg) {
+{
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingInvokeExpression", "")]
+  param (
+      [parameter(mandatory=$false, position=0)][string]$commandName,
+      [parameter(
+          mandatory=$false,
+          position=1,
+          ValueFromRemainingArguments=$true
+       )]$arg
+  )
+
     if (test-path ".\.ok-ps") {
         $file = ".\.ok-ps"
-		
+
     } elseif (test-path ".\.ok") {
         $file = ".\.ok"
     } else {
         $file = $null;
     }
     if ($null -ne $file) {
-        $commandInfo = (Get-OKCommands $file);
-        if ($null -eq $commandName) {
-            Show-OKFile $commandInfo;
-        } 
+        $okFileInfo = (Get-OKCommand $file);
+        if ($null -eq $commandName -or $commandName -eq "") {
+            Show-OKFile $okFileInfo;
+        }
         else {
-            Invoke-OKCommand $commandInfo ("" + $commandName);
+            Invoke-OKCommand -okfileinfo $okFileInfo -commandName $commandName -arg $arg;
         }
     }
 }
@@ -205,9 +232,9 @@ Set-alias ok Invoke-OK;
 
 # TODO: export from module:
 # Invoke-OK
-# Get-OKCommands
+# Get-OKCommand
 # Show-OKFile
-# Invoke-OKCommand
+# Invoke-OK
 
 # Don't export
 # Get-Token

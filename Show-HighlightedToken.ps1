@@ -97,6 +97,9 @@ function Show-HighlightedToken {
           $content = $content -replace "`"", "```""
           $content = "`"" + $content +  "`""
         }
+        if ($token.Type -eq [System.Management.Automation.PSTokenType]::Variable) {
+          $content = ("`$" + $content);
+        }
         Write-Host ($content) -ForegroundColor $tokenColor -NoNewLine
         
         #$lineNum = $token.EndLine;
