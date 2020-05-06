@@ -1,6 +1,7 @@
 # A more sophisticated ok file...
 echo "This one has arguments, try 'ok 2 {your message}'
 echo "hello $arg" # example of an argument!
-# Try the named command... with "ok greeting"
+# Named commands! These are fun! Try "ok greeting"
 greeting: write-host "Hello from the computer" -f yellow
 reply: write-host "Hello $arg" # named command with an arguments
+build: .\build.ps1 # Call this with 'ok build'
