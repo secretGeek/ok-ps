@@ -21,9 +21,10 @@ param (
     [string]
     $code,
     [Parameter(Mandatory, ValueFromPipeline=$false)]
-    [int]$CommentOffset
+    [int]$CommentOffset,
+    [int]$MaxKeyLength
 )
 
-  Get-Token $code | Show-HighlightedOKToken -CommentOffset $CommentOffset
+  Get-Token $code | Show-HighlightedOKToken -CommentOffset $CommentOffset -MaxKeyLength $MaxKeyLength
 
 }

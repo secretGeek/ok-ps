@@ -89,7 +89,12 @@ function Get-OKCommand($file) {
     if ($alignComments) {
         $maxCommandLength = ($commands.Values | ForEach-Object {
                 [OKCommandInfo]$c = $_;
-                Get-CommandLength ($c.tokens)
+                # Only consider commands where the total width < console width
+                if (($maxKeyLength + 2 + $c.CommandText.Length) -lt $Host.UI.RawUI.WindowSize.Width) {
+                    Get-CommandLength ($c.tokens);
+                } else {
+                    0;
+                }
             } | Measure-Object -Maximum | ForEach-Object Maximum);
 
         $maxCommentLength = ($commands.Values | ForEach-Object {
@@ -97,7 +102,10 @@ function Get-OKCommand($file) {
                 ($c.key.length + 2) + ($c.CommandText.Length) - (Get-CommandLength ($c.tokens));
             } | Measure-Object -Maximum | ForEach-Object Maximum);
         # the "- 2" is the width of the ": " after each command.
-        $commentOffset = [Math]::Min($Host.UI.RawUI.WindowSize.Width - 2 - $maxCommentLength - $maxKeyLength, $maxCommandLength)
+        $commentOffset = [Math]::Min(
+            $Host.UI.RawUI.WindowSize.Width - 2 - $maxCommentLength - $maxKeyLength, 
+            $maxCommandLength + 2 + $maxKeyLength)
+        #Write-Host "commentOffset:$commentOffset" -f Magenta;
     }
     else {
         $commentOffset = 0;
@@ -113,28 +121,25 @@ function Get-OKCommand($file) {
 }
 
 
-function Show-OKFile($commandInfo) {
-    $maxKeyWidth = $commandInfo.maxKeyWidth;
-    $commandInfo.lines | Foreach-Object {
+function Show-OKFile($okFileInfo) {
+    $maxKeyWidth = $okFileInfo.maxKeyWidth;
+    $okFileInfo.lines | Foreach-Object {
         [OKCommandInfo]$c = $_;
         if ($c.Type -eq [OKCommandType]::Comment) {
-            write-host $c.commandText -f Green
+            write-host (("-" * ($maxKeyWidth))+"  ") -NoNewline -f Cyan;
+            write-host $c.commandText.TrimStart().TrimStart('#').TrimStart() -f Cyan
         }
         else {
-            #$c.Type -eq [OKCommandType]::Comment
             write-host (" " * ($maxKeyWidth - $c.key.length)) -f cyan -NoNewline
             write-host $c.key -f cyan -NoNewline
             write-host ": " -f gray -NoNewline
-
-            Show-HighlightedOKCode -code $c.commandText -CommentOffset $commandInfo.commentOffset;
+            Show-HighlightedOKCode -code $c.commandText -CommentOffset $okFileInfo.commentOffset -MaxKeyLength $okFileInfo.MaxKeyWidth;
             write-host "";
         }
     }
 }
 
-
-#$maxCommandNum = $num;
-function Invoke-OKCommand { #($commandInfo, $commandName) {
+function Invoke-OKCommand { 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingInvokeExpression", "")]
   param (
       [parameter(mandatory=$false, position=0)][OKFileInfo]$okFileInfo,
@@ -146,13 +151,6 @@ function Invoke-OKCommand { #($commandInfo, $commandName) {
        )]$arg
   )
 
-<#
-[parameter(
-          mandatory=$false,
-          position=1,
-          ValueFromRemainingArguments=$true
-       )]$arg
-#>
     #TODO: what if it's not a valid command?
     # see if it's close to valid... get candidates if exactly 1 -- run it.
     # if more than 1 -- say "did you mean" and show those.
@@ -189,13 +187,13 @@ function Invoke-OKCommand { #($commandInfo, $commandName) {
         $command = $okFileInfo.commands[("" + $candidates[0])];
     }
     write-host "> " -f Magenta -NoNewline;
-    Show-HighlightedOKCode -code $command.commandText -CommentOffset $command.commentOffset;
+    Show-HighlightedOKCode -code $command.commandText -CommentOffset 0 -MaxKeyLength 0;
     write-host "";
 
     invoke-expression $command.commandText;
 }
 
-function Invoke-OK #($commandName, $arg) {
+function Invoke-OK 
 {
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingInvokeExpression", "")]
   param (
