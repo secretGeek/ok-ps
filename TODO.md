@@ -3,7 +3,9 @@
 
 - [x] Allow dots after the first character in names of commands.
 	
-- [ ] ok help does nothing.
+- [x] ok help does nothing.
+			- now help is returned if you run "ok help" (or any of these: ? /? -? --? /help --help -h --h /h)
+
 - [ ] Trailing white space causes it to incorrectly measure location of final comment for some commands, and decide it is past the end. 
 		  e.g. 
 				3: ". .\profile.ps1" | clipp      # dot profile 

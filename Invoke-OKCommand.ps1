@@ -263,6 +263,21 @@ function Invoke-OK {
         )]$arg
     )
 
+    if ($commandName -eq "help" -or
+        $commandName -eq "?" -or
+        $commandName -eq "--help" -or
+        $commandName -eq "-help" -or
+        $commandName -eq "-h" -or
+        $commandName -eq "--h" -or
+        $commandName -eq "/?" -or
+        $commandName -eq "-?" -or
+        $commandName -eq "--?" -or
+        $commandName -eq "/help" -or
+        $commandName -eq "/h"
+        ) {
+        get-help invoke-ok;
+        return;
+    }
     if (test-path ".\.ok-ps") {
         $file = ".\.ok-ps"
 
