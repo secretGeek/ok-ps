@@ -31,7 +31,7 @@ function Get-OKCommand($file) {
     $commands = @{ };
 
     $lines = New-Object System.Collections.ArrayList
-    [regex]$rx = "^[ `t]*(?<commandName>[A-Za-z_][A-Za-z0-9-_]*)[ `t]*\:(?<commandText>.*)$";
+    [regex]$rx = "^[ `t]*(?<commandName>[A-Za-z_][A-Za-z0-9-_.]*)[ `t]*\:(?<commandText>.*)$";
 
     $num = 0;
     $physicalLineNum = 0;

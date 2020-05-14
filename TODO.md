@@ -1,8 +1,7 @@
 # Todo items
 
 
-- [ ] Make a TECHNOTES folder... for all the documentation
-	- in the .ok for that folder use NPX markserve to let local users browse it... https://www.npmjs.com/package/markserv
+- [x] Allow dots after the first character in names of commands.
 	
 - [ ] ok help does nothing.
 - [ ] Trailing white space causes it to incorrectly measure location of final comment for some commands, and decide it is past the end. 
@@ -12,7 +11,11 @@
 				3: ". .\profile.ps1" | clipp      
 				                             # dot profile
 		
-- [ ] Allow dots after the first character in names of commands.
+- [ ] Show number or name... numbers are not contiguous. And
+
+- [ ] Make a TECHNOTES folder... for all the documentation
+	- in the .ok for that folder use NPX markserve to let local users browse it... https://www.npmjs.com/package/markserv
+
 
 ## Bug ---
 
