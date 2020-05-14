@@ -44,7 +44,6 @@ function Show-HighlightedToken {
     End{
     }
   }
-  
   function Show-HighlightedOKToken {
     Param(
       [Parameter(Mandatory,
@@ -73,7 +72,7 @@ function Show-HighlightedToken {
             $numSpaces = ($CommentOffset - $charNum);
             write-host (" " * $numSpaces) -NoNewline;
             $charNum += $numSpaces;
-          } elseif ($charnum -gt $CommentOffset) {
+          } elseif ($CommentOffset -gt 0 -and $charnum -gt $CommentOffset) {
             $numSpaces = ($Host.UI.RawUI.WindowSize.Width - $token.Content.Length);
             $numSpaces = [Math]::Min($numSpaces, $CommentOffset);
             write-host ""; # take a new line;
@@ -101,4 +100,3 @@ function Show-HighlightedToken {
     End{
     }
   }
-  

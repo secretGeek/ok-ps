@@ -26,4 +26,3 @@ function Get-TokenTypeColor([System.Management.Automation.PSTokenType]$tokenType
     }
     return $c;
   }
-  

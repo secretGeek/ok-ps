@@ -10,7 +10,7 @@ function Show-HighlightedCode
       $code
   )
 
-  Get-Token $code | Show-HighlightedToken 
+  Get-Token $code | Show-HighlightedToken
 }
 
 function Show-HighlightedOKCode

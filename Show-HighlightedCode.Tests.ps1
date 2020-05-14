@@ -47,5 +47,4 @@ Describe "Show-HighlightedCode" {
         Assert-MockCalled Write-Host -Exactly 1 -Scope It -ParameterFilter { $Object -eq "`$arg" }
     }
 
-
 }

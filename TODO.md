@@ -1,5 +1,82 @@
 # Todo items
 
+
+- [ ] Make a TECHNOTES folder... for all the documentation
+	- in the .ok for that folder use NPX markserve to let local users browse it... https://www.npmjs.com/package/markserv
+	
+- [ ] ok help does nothing.
+- [ ] Trailing white space causes it to incorrectly measure location of final comment for some commands, and decide it is past the end. 
+		  e.g. 
+				3: ". .\profile.ps1" | clipp      # dot profile 
+			gets written
+				3: ". .\profile.ps1" | clipp      
+				                             # dot profile
+		
+- [ ] Allow dots after the first character in names of commands.
+
+## Bug ---
+
+- [ ] a named command with no text after it produces this error:
+
+
+     ts: Show-HighlightedOKCode : Cannot bind argument to parameter 'code' because it is an empty string.
+At C:\users\leonb\Dropbox\secretGeek\util\Powershell\Scriptlets\ok\Invoke-OKCommand.ps1:129 char:42
++             Show-HighlightedOKCode -code $c.commandText -CommentOffse ...
++                                          ~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Show-HighlightedOKCode], ParameterBindingValidationException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Show-HighlightedOKCode
+
+
+- [ ] when calculating longest command --- only consider commands that have a comment
+
+- [x] when writing the command (at go time) it says the offset is 0 so it goes to a new line.... it shouldn't do that if offset is zero.
+
+## Document:
+
+	[ ] OK
+		- how to tell VSCode that a .ok and .ok-ps file should be syntax highlighted as powershell. (or bash)
+		- how to tell Notepad++ same.
+
+
+
+## Comment-Based Help
+
+[read about it here](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_comment_based_help#comment-based-help-keywords)
+	
+invoke-ok:
+	- [x] synopsis
+	- [x] description
+	- parameters:
+		- each parameter
+- related links
+- notes
+	- [ ] I am not sure what to put in notes. [online description](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_comment_based_help#notes)
+- technical help
+- help on parameters
+- verbose -- pass this to children
+  - use verbose to decide to... show or not show the command being run.
+    - show or not show comments from the code.
+
+			<CommonParameters>
+			This cmdlet supports the common parameters: 
+				Verbose, 
+				Debug,
+				ErrorAction,
+				ErrorVariable,
+				WarningAction,
+				WarningVariable,
+				OutBuffer,
+				PipelineVariable, and 
+				OutVariable. 
+				
+				For more information, see
+				about_CommonParameters
+				(https:/go.microsoft.com/fwlink/?LinkID=113216).
+				--------- EXAMPLE 1 ---------
+				PS C:\>.\verb-noun.ps1 "TERROR!"
+
+
+
 ## Syntax highlighting
 
 - [x] quotes around string tokens. (double?)
@@ -12,6 +89,7 @@ should be
 
 	echo $arg
 
+## User commands and numbers -- intermix properly per doeke's plan
 
 ## Consistent name for user commands
 

@@ -90,20 +90,42 @@ function Get-OKCommand($file) {
         $maxCommandLength = ($commands.Values | ForEach-Object {
                 [OKCommandInfo]$c = $_;
                 # Only consider commands where the total width < console width
+
                 if (($maxKeyLength + 2 + $c.CommandText.Length) -lt $Host.UI.RawUI.WindowSize.Width) {
-                    Get-CommandLength ($c.tokens);
-                } else {
+                    $commandLength = (Get-CommandLength ($c.tokens));
+                    $commentLength = ($c.CommandText.Length) - $commandLength;
+                    if ($commentLength -gt 0) { 
+                        #write-host "commandLength $commandLength $($c.CommandText)" -f blue;
+                        #write-host "commentLength $commentLength $($c.CommandText)" -f darkblue;
+                        $commandLength; 
+                    }
+                    else { 
+                        #write-host "commandLength $commandLength $($c.CommandText)" -f magenta;
+                        0;
+                    }
+                }
+                else {
                     0;
                 }
             } | Measure-Object -Maximum | ForEach-Object Maximum);
 
         $maxCommentLength = ($commands.Values | ForEach-Object {
                 [OKCommandInfo]$c = $_;
-                ($c.key.length + 2) + ($c.CommandText.Length) - (Get-CommandLength ($c.tokens));
+                $commandLength = (Get-CommandLength ($c.tokens));
+                if ($commandLength -gt 0) {
+                    # return the length of the comment.. (only counts if there *is* a command)
+                    #write-host "commandLength $commandLength $($c.CommandText)" -f red;
+                    ($c.key.length + 2) + ($c.CommandText.Length) - $commandLength;
+                }
+                else {
+                    #write-host "No command... $($c.CommandText)" -f green;
+                    0;
+                }
+            
             } | Measure-Object -Maximum | ForEach-Object Maximum);
         # the "- 2" is the width of the ": " after each command.
         $commentOffset = [Math]::Min(
-            $Host.UI.RawUI.WindowSize.Width - 2 - $maxCommentLength - $maxKeyLength, 
+            $Host.UI.RawUI.WindowSize.Width - 2 - $maxCommentLength - $maxKeyLength,
             $maxCommandLength + 2 + $maxKeyLength)
         #Write-Host "commentOffset:$commentOffset" -f Magenta;
     }
@@ -126,7 +148,7 @@ function Show-OKFile($okFileInfo) {
     $okFileInfo.lines | Foreach-Object {
         [OKCommandInfo]$c = $_;
         if ($c.Type -eq [OKCommandType]::Comment) {
-            write-host (("-" * ($maxKeyWidth))+"  ") -NoNewline -f Cyan;
+            write-host (("-" * ($maxKeyWidth)) + "  ") -NoNewline -f Cyan;
             write-host $c.commandText.TrimStart().TrimStart('#').TrimStart() -f Cyan
         }
         else {
@@ -139,17 +161,17 @@ function Show-OKFile($okFileInfo) {
     }
 }
 
-function Invoke-OKCommand { 
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingInvokeExpression", "")]
-  param (
-      [parameter(mandatory=$false, position=0)][OKFileInfo]$okFileInfo,
-      [parameter(mandatory=$false, position=1)][string]$commandName,
-      [parameter(
-          mandatory=$false,
-          position=1,
-          ValueFromRemainingArguments=$true
-       )]$arg
-  )
+function Invoke-OKCommand {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingInvokeExpression", "")]
+    param (
+        [parameter(mandatory = $false, position = 0)][OKFileInfo]$okFileInfo,
+        [parameter(mandatory = $false, position = 1)][string]$commandName,
+        [parameter(
+            mandatory = $false,
+            position = 1,
+            ValueFromRemainingArguments = $true
+        )]$arg
+    )
 
     #TODO: what if it's not a valid command?
     # see if it's close to valid... get candidates if exactly 1 -- run it.
@@ -180,12 +202,14 @@ function Invoke-OKCommand {
             }
             return;
         }
+        #TODO: check verbose
         write-host "ok: No such command! " -f Yellow -NoNewLine
         write-host "Assume you meant: " -f gray -NoNewline
         write-host "'$($candidates[0])'" -f White -NoNewLine
         write-host "..." -f gray
         $command = $okFileInfo.commands[("" + $candidates[0])];
     }
+    #TODO: check verbose
     write-host "> " -f Magenta -NoNewline;
     Show-HighlightedOKCode -code $command.commandText -CommentOffset 0 -MaxKeyLength 0;
     write-host "";
@@ -193,26 +217,63 @@ function Invoke-OKCommand {
     invoke-expression $command.commandText;
 }
 
-function Invoke-OK 
-{
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingInvokeExpression", "")]
-  param (
-      [parameter(mandatory=$false, position=0)][string]$commandName,
-      [parameter(
-          mandatory=$false,
-          position=1,
-          ValueFromRemainingArguments=$true
-       )]$arg
-  )
+
+<#
+.SYNOPSIS
+Inspect or run commands from your ok-file
+
+.DESCRIPTION
+Put a file in your local folder called ".ok" (or ".ok-ps") containing useful powershell one-liners.
+
+Call "Invoke-OK" (or its common alias "ok") with no parameters and the ok file will be pretty printed, with a number before each powershell one-liner.
+
+Call Invoke-OK {number} to run the line of code that corresponds to that number.
+
+You can also have named commands, just prefix the command with a name and a colon, e.g. your .ok file could contain:
+
+    deploy: robocopy *.ps1 c:\launchplace /MIR
+
+You would use "ok deploy" to run that line of code.
+
+.PARAMETER commandName
+This optional command can specify a number of a user-command.
+
+If specified, Invoke-OK will call Invoke-OKCommand and pass it the name of the command file and the commandName.
+
+
+.PARAMETER arg
+
+.NOTES
+
+
+
+.EXAMPLE
+ok
+(Assuming you have the ALIAS "ok" for "Invoke-OK" ... because it's super useful!)
+
+#>
+function Invoke-OK {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingInvokeExpression", "")]
+    param (
+        [parameter(mandatory = $false, position = 0)][string]$commandName,
+        [parameter(
+            mandatory = $false,
+            position = 1,
+            ValueFromRemainingArguments = $true
+        )]$arg
+    )
 
     if (test-path ".\.ok-ps") {
         $file = ".\.ok-ps"
 
-    } elseif (test-path ".\.ok") {
+    }
+    elseif (test-path ".\.ok") {
         $file = ".\.ok"
-    } else {
+    }
+    else {
         $file = $null;
     }
+
     if ($null -ne $file) {
         $okFileInfo = (Get-OKCommand $file);
         if ($null -eq $commandName -or $commandName -eq "") {

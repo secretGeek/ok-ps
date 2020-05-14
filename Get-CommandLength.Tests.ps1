@@ -20,7 +20,7 @@ Describe "Get-CommandLength" {
         Get-CommandLength ($code | Get-Token) | Should -Be $code.Length
     }
     It "Simple Variable, Operator, Number" {
-        $code = "`$x = 3";     
+        $code = "`$x = 3";
         Get-CommandLength ($code | Get-Token) | Should -Be $code.Length
     }
     It "Simple Variable, Operator, Number, Comment" {
@@ -29,7 +29,7 @@ Describe "Get-CommandLength" {
         Get-CommandLength ($code | Get-Token) | Should -Be ($code.Split("#")[0].TrimEnd().Length)
     }
     It "Complex comment" {
-        $code = "`$x = 3 <# Hi! #>";      
+        $code = "`$x = 3 <# Hi! #>";
         Get-CommandLength ($code | Get-Token) | Should -Be ($code.Split("<#")[0].TrimEnd().Length)
     }
     It "Code with dollar embedded in quotes" {
@@ -37,11 +37,20 @@ Describe "Get-CommandLength" {
         #$code | Get-Token | ft | out-host;
         Get-CommandLength ($code | Get-Token) | Should -Be ($code.Split("#")[0].TrimEnd().Length)
     }
-     
+
     It "Code with comment embedded in quotes" {
         $code = "echo `"#`"    # commit and push";
         $parts = $code.Split("#");
         $expected = ($parts[0].Length + "#".Length + $parts[1].TrimEnd().Length)
+				#write-host $code
+				#write-host "Expected length: $expected";
         Get-CommandLength ($code | Get-Token) | Should -Be $expected;
+    }
+		#". .\profile.ps1" | clipp
+#"`". .\profile.ps1`" | clipp"
+		It "This one fails in the wild" {
+        $code = "`". .\profile.ps1`" | clipp # dot profile";
+        #$code | Get-Token | ft | out-host;
+        Get-CommandLength ($code | Get-Token) | Should -Be ($code.Split("#")[0].TrimEnd().Length)
     }
 }
