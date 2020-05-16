@@ -94,12 +94,12 @@ function Get-OKCommand($file) {
                 if (($maxKeyLength + 2 + $c.CommandText.Length) -lt $Host.UI.RawUI.WindowSize.Width) {
                     $commandLength = (Get-CommandLength ($c.tokens));
                     $commentLength = ($c.CommandText.Length) - $commandLength;
-                    if ($commentLength -gt 0) { 
+                    if ($commentLength -gt 0) {
                         #write-host "commandLength $commandLength $($c.CommandText)" -f blue;
                         #write-host "commentLength $commentLength $($c.CommandText)" -f darkblue;
-                        $commandLength; 
+                        $commandLength;
                     }
-                    else { 
+                    else {
                         #write-host "commandLength $commandLength $($c.CommandText)" -f magenta;
                         0;
                     }
@@ -121,7 +121,7 @@ function Get-OKCommand($file) {
                     #write-host "No command... $($c.CommandText)" -f green;
                     0;
                 }
-            
+
             } | Measure-Object -Maximum | ForEach-Object Maximum);
         # the "- 2" is the width of the ": " after each command.
         $commentOffset = [Math]::Min(
@@ -142,14 +142,14 @@ function Get-OKCommand($file) {
     return $fileInfo;
 }
 
-
 function Show-OKFile($okFileInfo) {
     $maxKeyWidth = $okFileInfo.maxKeyWidth;
     $okFileInfo.lines | Foreach-Object {
         [OKCommandInfo]$c = $_;
         if ($c.Type -eq [OKCommandType]::Comment) {
-            write-host (("-" * ($maxKeyWidth)) + "  ") -NoNewline -f Cyan;
-            write-host $c.commandText.TrimStart().TrimStart('#').TrimStart() -f Cyan
+            write-host ((" " * ($maxKeyWidth-2)) + "  ") -NoNewline -f DarkCyan;
+						write-host "# " -NoNewline -f DarkCyan;
+            write-host $c.commandText.TrimStart().TrimStart('#').TrimStart() -f DarkCyan
         }
         else {
             write-host (" " * ($maxKeyWidth - $c.key.length)) -f cyan -NoNewline
@@ -217,7 +217,6 @@ function Invoke-OKCommand {
     invoke-expression $command.commandText;
 }
 
-
 <#
 .SYNOPSIS
 Inspect or run commands from your ok-file
@@ -240,12 +239,9 @@ This optional command can specify a number of a user-command.
 
 If specified, Invoke-OK will call Invoke-OKCommand and pass it the name of the command file and the commandName.
 
-
 .PARAMETER arg
 
 .NOTES
-
-
 
 .EXAMPLE
 ok
@@ -299,7 +295,6 @@ function Invoke-OK {
         }
     }
 }
-
 
 # TODO: export alias from module;
 Set-alias ok Invoke-OK;

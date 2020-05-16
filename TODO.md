@@ -1,18 +1,63 @@
 # Todo items
 
 
+- [x] Check if command name portions work.
+
+	- When a fragment is not ambiguous:
+
+			> ok t
+			ok: No such command! Assume you meant: 'todo'...
+			> n todo.md
+
+	- When a fragment is not ambiguous:
+
+			> ok tod
+			ok: command 'tod' is ambiguous, did you mean:
+						todoo todo
+
+	- [ ] doeke suggests -- use levenshtein distance when checking command.
+
+		- I guess in this case it would suggest 'todo' --
+
+				> OK ODO
+				ok: unknown command 'ODO'
+
+	- [ ] What if a name given is TOO long... e.g.
+			> OK todoooo
+
+		-	...mercurial would do this:
+
+				> hg pulllll
+				hg: unknown command 'pulllll'
+				(did you mean pull?)
+
+		[ ] similarly, even when there's no common prefix..
+
+				> hg patents
+				hg: unknown command 'patents'
+				(did you mean one of parents, paths, update?)
+				
+		- both the previous can be solved with levenshtein I expect.
+
+
+- [ ] don't put `("-" * commandNameLength)` dashes at start of comment line:
+	- put spaces and then a '#'
+
+
+- [ ] verbosity: do not show the existing command, or other guff, depends on verbose level.
+
 - [x] Allow dots after the first character in names of commands.
-	
+
 - [x] ok help does nothing.
 			- now help is returned if you run "ok help" (or any of these: ? /? -? --? /help --help -h --h /h)
 
-- [ ] Trailing white space causes it to incorrectly measure location of final comment for some commands, and decide it is past the end. 
-		  e.g. 
-				3: ". .\profile.ps1" | clipp      # dot profile 
+- [ ] Trailing white space causes it to incorrectly measure location of final comment for some commands, and decide it is past the end.
+		  e.g.
+				3: ". .\profile.ps1" | clipp      # dot profile
 			gets written
-				3: ". .\profile.ps1" | clipp      
+				3: ". .\profile.ps1" | clipp
 				                             # dot profile
-		
+
 - [ ] Show number or name... numbers are not contiguous. And
 
 - [ ] Make a TECHNOTES folder... for all the documentation
@@ -47,7 +92,7 @@ At C:\users\leonb\Dropbox\secretGeek\util\Powershell\Scriptlets\ok\Invoke-OKComm
 ## Comment-Based Help
 
 [read about it here](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_comment_based_help#comment-based-help-keywords)
-	
+
 invoke-ok:
 	- [x] synopsis
 	- [x] description
@@ -63,17 +108,17 @@ invoke-ok:
     - show or not show comments from the code.
 
 			<CommonParameters>
-			This cmdlet supports the common parameters: 
-				Verbose, 
+			This cmdlet supports the common parameters:
+				Verbose,
 				Debug,
 				ErrorAction,
 				ErrorVariable,
 				WarningAction,
 				WarningVariable,
 				OutBuffer,
-				PipelineVariable, and 
-				OutVariable. 
-				
+				PipelineVariable, and
+				OutVariable.
+
 				For more information, see
 				about_CommonParameters
 				(https:/go.microsoft.com/fwlink/?LinkID=113216).
@@ -127,7 +172,7 @@ from `ok-bash` -- all of these are used, so reserve them for future use.
 	help
 	?, /? -? --? -h --h  (maybe these too)
 
-If person 
+If person
 
 
 ## Publish as module
@@ -139,11 +184,11 @@ See [what is a module](https://til.secretgeek.net/powershell/module_what_is_it.h
 - [ ] Make a module
 	- [ ] Implement a module `.psm1` file
 	- [ ] Ensure correct exports
-	- [ ] Requires renaming 
+	- [ ] Requires renaming
 - [ ] Publish to the powershell gallery
 	- see https://mcpmag.com/articles/2017/03/16/submit-module-to-the-powershell-gallery.aspx?m=1
 
-- note modules can export aliases 
+- note modules can export aliases
 - see https://stackoverflow.com/questions/5677136/how-to-export-powershell-module-aliases-with-a-module-manifest
 
 ## Let ok-ps by default try .ok-ps and .okin succession.
