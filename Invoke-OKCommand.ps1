@@ -1,3 +1,4 @@
+
 . (Join-Path $PSScriptRoot "Get-Token.ps1")
 . (Join-Path $PSScriptRoot "Get-CommandLength.ps1")
 . (Join-Path $PSScriptRoot "Show-HighlightedCode.ps1")
@@ -14,6 +15,7 @@ Class OKCommandInfo {
     [int]$physicalLineNum # 1-based
     [OKCommandType]$type # what type of line is this? A comment, numbered or named
     [string]$commandText # everything other than the command name (if there is one)
+    [int]$num # number of the command (if it is a name or number command only)
     [string]$key # either ("" + $number) or $commandName
     [System.Management.Automation.PSToken[]]$tokens
     [int]$commentOffset # how many chars from the start of the command to the first comment token (useful to know this for aligning comments)
@@ -21,16 +23,15 @@ Class OKCommandInfo {
 
 Class OKFileInfo {
     [string]$fileName; # fileName
-    [Hashtable]$commands; # hashtable of OKCommandInfo
+    [System.Collections.Specialized.OrderedDictionary]$commands; # order dictionary of OKCommandInfo
     [OKCommandInfo[]]$lines; # Commands, in the order they are found in the file
     [int]$maxKeyWidth; # what is the widest command name
     [int]$commentOffset;
 }
 
 function Get-OKCommand($file) {
-
     # TODO: parameter validation
-    $commands = @{ };
+    $commands = [ordered]@{ };
 
     $lines = New-Object System.Collections.ArrayList
     [regex]$rx = "^[ `t]*(?<commandName>[A-Za-z_][A-Za-z0-9-_.]*)[ `t]*\:(?<commandText>.*)$";
@@ -57,28 +58,32 @@ function Get-OKCommand($file) {
                 if ($null -ne $groups) {
                     $commandInfo.type = [OKCommandType]::Named
                     $commandInfo.commandText = $groups[0].Groups["commandText"].Value.Trim();
-
                     $key = $groups[0].Groups["commandName"].Value.Trim();
+                    $num = $num + 1;
                     if ($null -ne $commands[$key]) {
-                        $num = $num + 1;
+                        # Name has been used.
+                        # (verbose: show warning)
                         <#
                         write-host "ok: duplicate commandname '" -f Red -no;
                         write-host "$key" -f white -no;
                         write-host "' mapped to " -f Red -no;
                         write-host "$num" -f white;
                         #>
-                        $key = ("" + $num);
                         $commandInfo.type = [OKCommandType]::Numbered
+                        $key = ("" + $num);
                     }
+                    $commandInfo.num = $num;
                     $commandInfo.key = $key;
                 }
                 else {
                     $num = $num + 1;
-                    $commandInfo.type = [OKCommandType]::Numbered
                     $commandInfo.commandText = $line
+                    $commandInfo.type = [OKCommandType]::Numbered
                     $commandInfo.key = ("" + $num);
+                    $commandInfo.num = $num;
                 }
-                $maxKeyWidth = [math]::max( $maxKeyWidth , $commandInfo.key.length );
+
+                $maxKeyWidth = [math]::max( $maxKeyWidth , $commandInfo.key.Length);
                 $commandInfo.Tokens = (Get-Token $commandInfo.commandText);
                 $commands.Add($commandInfo.key, $commandInfo) | out-null;
             }
@@ -179,7 +184,16 @@ function Invoke-OKCommand {
     # see if it's close to valid... get candidates if exactly 1 -- run it.
     # if more than 1 -- say "did you mean" and show those.
     # if it's less than 1 -- error... show file.
-    $command = $okFileInfo.commands[("" + $commandName)];
+    if ($commandName -match "^[0-9]+$") {
+        $commandIndex = ($commandName -as "int") - 1;
+        if ($commandIndex -ge 0 -and $commandIndex -lt $okFileInfo.commands.Count) {
+            $command = $okFileInfo.commands[$commandIndex];
+        } else {
+            $command = $null;
+        }
+    } else {
+        $command = $okFileInfo.commands[("" + $commandName)];
+    }
     if ($null -eq $command) {
         $candidates = New-Object System.Collections.ArrayList
 
