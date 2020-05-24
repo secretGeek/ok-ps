@@ -160,7 +160,11 @@ function Show-OKFile($okFileInfo) {
         }
         else {
             write-host (" " * ($maxKeyWidth - $c.key.length)) -NoNewline
-            write-host $c.key -f Cyan -NoNewline
+            if ($c.Type -eq [OKCommandType]::Numbered){
+                write-host $c.key -f DarkCyan -NoNewline
+            } else {
+                write-host $c.key -f Cyan -NoNewline
+            }
             write-host ": " -f Cyan -NoNewline
             Show-HighlightedOKCode -code $c.commandText -CommentOffset $okFileInfo.commentOffset -MaxKeyLength $okFileInfo.MaxKeyWidth;
             write-host "";
