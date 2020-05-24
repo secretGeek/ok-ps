@@ -8,6 +8,8 @@ Enum OKCommandType {
     Named = 3
 }
 
+#$ReservedWords = @("reset","prompt","prompt_default","auto_show","comment_align","verbose","quiet","list","list-once","list-prompt","h","help","h");
+
 Class OKCommandInfo {
     [int]$physicalLineNum # 1-based
     [OKCommandType]$type # what type of line is this? A comment, numbered or named
@@ -40,7 +42,7 @@ function Get-OKCommand($file) {
         $line = $_.trim();
         $physicalLineNum = $physicalLineNum + 1;
         if ($null -eq $line -or $line -eq "") {
-            # blank line
+            # skip blank line
         }
         else {
             $commandInfo = new-object OKCommandInfo
@@ -147,14 +149,14 @@ function Show-OKFile($okFileInfo) {
     $okFileInfo.lines | Foreach-Object {
         [OKCommandInfo]$c = $_;
         if ($c.Type -eq [OKCommandType]::Comment) {
-            write-host ((" " * ($maxKeyWidth-2)) + "  ") -NoNewline -f DarkCyan;
-						write-host "# " -NoNewline -f DarkCyan;
-            write-host $c.commandText.TrimStart().TrimStart('#').TrimStart() -f DarkCyan
+            write-host (" " * ($maxKeyWidth)) -NoNewline;
+            write-host "# " -NoNewline -f Cyan;
+            write-host $c.commandText.TrimStart().TrimStart('#').TrimStart() -f Cyan
         }
         else {
-            write-host (" " * ($maxKeyWidth - $c.key.length)) -f cyan -NoNewline
-            write-host $c.key -f cyan -NoNewline
-            write-host ": " -f gray -NoNewline
+            write-host (" " * ($maxKeyWidth - $c.key.length)) -NoNewline
+            write-host $c.key -f Cyan -NoNewline
+            write-host ": " -f Cyan -NoNewline
             Show-HighlightedOKCode -code $c.commandText -CommentOffset $okFileInfo.commentOffset -MaxKeyLength $okFileInfo.MaxKeyWidth;
             write-host "";
         }
@@ -222,17 +224,19 @@ function Invoke-OKCommand {
 Inspect or run commands from your ok-file
 
 .DESCRIPTION
-Put a file in your local folder called ".ok" (or ".ok-ps") containing useful powershell one-liners.
+"Invoke-OK" (and the entire OK module) rely on first finding a file in the current folder ".ok" (or ".ok-ps"), containing useful powershell one-liners you like to use in that folder.
 
-Call "Invoke-OK" (or its common alias "ok") with no parameters and the ok file will be pretty printed, with a number before each powershell one-liner.
+ ("Invoke-OK" is usually called by its suggested alias, `ok`. That alias is used in the examples below.)
 
-Call Invoke-OK {number} to run the line of code that corresponds to that number.
+Call "ok" with **no parameters** and the ok-file will be pretty printed, with a number before each powershell one-liner.
 
-You can also have named commands, just prefix the command with a name and a colon, e.g. your .ok file could contain:
+Call "ok {number}"" to run the line of code that corresponds to that number.
+
+You can also have named commands. Just prefix the one-liner with a name and a colon, e.g. your ok file could contain:
 
     deploy: robocopy *.ps1 c:\launchplace /MIR
 
-You would use "ok deploy" to run that line of code.
+Call "ok deploy" to run that command.
 
 .PARAMETER commandName
 This optional command can specify a number of a user-command.
@@ -259,31 +263,11 @@ function Invoke-OK {
         )]$arg
     )
 
-    if ($commandName -eq "help" -or
-        $commandName -eq "?" -or
-        $commandName -eq "--help" -or
-        $commandName -eq "-help" -or
-        $commandName -eq "-h" -or
-        $commandName -eq "--h" -or
-        $commandName -eq "/?" -or
-        $commandName -eq "-?" -or
-        $commandName -eq "--?" -or
-        $commandName -eq "/help" -or
-        $commandName -eq "/h"
-        ) {
+    if ($commandName -match "^(/|--|-|\\|)(h|\?|help)$") {
         get-help invoke-ok;
         return;
     }
-    if (test-path ".\.ok-ps") {
-        $file = ".\.ok-ps"
-
-    }
-    elseif (test-path ".\.ok") {
-        $file = ".\.ok"
-    }
-    else {
-        $file = $null;
-    }
+    $file = (Get-OKFileLocation);
 
     if ($null -ne $file) {
         $okFileInfo = (Get-OKCommand $file);
@@ -294,6 +278,20 @@ function Invoke-OK {
             Invoke-OKCommand -okfileinfo $okFileInfo -commandName $commandName -arg $arg;
         }
     }
+    # else silence;
+}
+
+# all knowledge about how to probe for an determine the location of the ok-file is encapsulated in this function.
+function Get-OKFileLocation () {
+    if (test-path ".\.ok-ps") {
+       return ".\.ok-ps"
+    }
+
+    elseif (test-path ".\.ok") {
+       return ".\.ok"
+    }
+
+    return $null;
 }
 
 # TODO: export alias from module;

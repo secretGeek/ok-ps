@@ -1,21 +1,33 @@
 # Todo items
 
+**TOC**
+- [Inbox]
+- [Highest Priority]
+- [DONE] (somewhere after line 207)
 
-- [x] Check if command name portions work.
 
-	- When a fragment is not ambiguous:
+# Inbox (unclassified)
 
-			> ok t
-			ok: No such command! Assume you meant: 'todo'...
-			> n todo.md
 
-	- When a fragment is not ambiguous:
 
-			> ok tod
-			ok: command 'tod' is ambiguous, did you mean:
-						todoo todo
+# Highest priority
 
-	- [ ] doeke suggests -- use levenshtein distance when checking command.
+- [ ] Show number or name... numbers are not contiguous.
+
+- [ ] Make a TECHNOTES folder... for all the documentation
+	- in the .ok for that folder use NPX markserve to let local users browse it... https://www.npmjs.com/package/markserv
+		- describe all options and error messages
+		
+
+- [ ] Config...
+	- [ ] need a sample script to read/write json settings (simple booleans) in a localappdata subfolder named ok-ps.
+	- [ ] Given a parameter of "get-okconfiglocation", ok will tell the folder where it's config file is stored.
+				each config file in that location is only loaded for a first time when certain events occur within ok. those files will be named like "{event}-ok-config.json" where event is a documented event name. Currently the
+
+
+	- [ ] Command Name Error Handling and edge cases
+		
+			doeke suggests -- use levenshtein distance when checking command.
 
 		- I guess in this case it would suggest 'todo' --
 
@@ -40,28 +52,25 @@
 		- both the previous can be solved with levenshtein I expect.
 
 
-- [ ] don't put `("-" * commandNameLength)` dashes at start of comment line:
+- [x] don't put `("-" * commandNameLength)` dashes at start of comment line:
 	- put spaces and then a '#'
 
 
 - [ ] verbosity: do not show the existing command, or other guff, depends on verbose level.
+	- see how -verbose works -- and review every write-host.
 
 - [x] Allow dots after the first character in names of commands.
 
 - [x] ok help does nothing.
 			- now help is returned if you run "ok help" (or any of these: ? /? -? --? /help --help -h --h /h)
 
-- [ ] Trailing white space causes it to incorrectly measure location of final comment for some commands, and decide it is past the end.
+- [x] Trailing white space causes it to incorrectly measure location of final comment for some commands, and decide it is past the end.
 		  e.g.
 				3: ". .\profile.ps1" | clipp      # dot profile
 			gets written
 				3: ". .\profile.ps1" | clipp
 				                             # dot profile
 
-- [ ] Show number or name... numbers are not contiguous. And
-
-- [ ] Make a TECHNOTES folder... for all the documentation
-	- in the .ok for that folder use NPX markserve to let local users browse it... https://www.npmjs.com/package/markserv
 
 
 ## Bug ---
@@ -69,25 +78,25 @@
 - [ ] a named command with no text after it produces this error:
 
 
-     ts: Show-HighlightedOKCode : Cannot bind argument to parameter 'code' because it is an empty string.
-At C:\users\leonb\Dropbox\secretGeek\util\Powershell\Scriptlets\ok\Invoke-OKCommand.ps1:129 char:42
-+             Show-HighlightedOKCode -code $c.commandText -CommentOffse ...
-+                                          ~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Show-HighlightedOKCode], ParameterBindingValidationException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Show-HighlightedOKCode
+		ts: Show-HighlightedOKCode : Cannot bind argument to parameter 'code' because it is an empty string.
+		At C:\users\leonb\Dropbox\secretGeek\util\Powershell\Scriptlets\ok\Invoke-OKCommand.ps1:129 char:42
+		+             Show-HighlightedOKCode -code $c.commandText -CommentOffse ...
+		+                                          ~~~~~~~~~~~~~~
+				+ CategoryInfo          : InvalidData: (:) [Show-HighlightedOKCode], ParameterBindingValidationException
+				+ FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Show-HighlightedOKCode
 
 
-- [ ] when calculating longest command --- only consider commands that have a comment
+	- [ ] maybe just 'silentlyContinue on those, with null token. '(Get-Command "ConvertTo-Json" -errorAction SilentlyContinue)
+
+- [x] when calculating longest command -- only consider commands that have a comment
 
 - [x] when writing the command (at go time) it says the offset is 0 so it goes to a new line.... it shouldn't do that if offset is zero.
 
 ## Document:
 
-	[ ] OK
+- [ ] OK
 		- how to tell VSCode that a .ok and .ok-ps file should be syntax highlighted as powershell. (or bash)
 		- how to tell Notepad++ same.
-
-
 
 ## Comment-Based Help
 
@@ -107,7 +116,6 @@ invoke-ok:
   - use verbose to decide to... show or not show the command being run.
     - show or not show comments from the code.
 
-			<CommonParameters>
 			This cmdlet supports the common parameters:
 				Verbose,
 				Debug,
@@ -124,7 +132,6 @@ invoke-ok:
 				(https:/go.microsoft.com/fwlink/?LinkID=113216).
 				--------- EXAMPLE 1 ---------
 				PS C:\>.\verb-noun.ps1 "TERROR!"
-
 
 
 ## Syntax highlighting
@@ -191,9 +198,13 @@ See [what is a module](https://til.secretgeek.net/powershell/module_what_is_it.h
 - note modules can export aliases
 - see https://stackoverflow.com/questions/5677136/how-to-export-powershell-module-aliases-with-a-module-manifest
 
-## Let ok-ps by default try .ok-ps and .okin succession.
+## Let ok-ps by default try .ok-ps and .ok in succession.
 
-- [ ] Let ok-ps by default try .ok-ps and .ok in succession.
+- [x] Let ok-ps by default try .ok-ps and .ok in succession.
+
+# DONE
+
+**EVERYTHING BELOW HERE IS DONE**
 
 ## Done: Fix all warnings from Script Analyzer
 
@@ -277,4 +288,22 @@ done.
 * Get-OKCommand
 * Invoke-OKCommand
 
+
+
+
+
+
+- [x] Check if command name portions work.
+
+	- When a fragment is not ambiguous:
+
+			> ok t
+			ok: No such command! Assume you meant: 'todo'...
+			> n todo.md
+
+	- When a fragment is not ambiguous:
+
+			> ok tod
+			ok: command 'tod' is ambiguous, did you mean:
+						todoo todo
 

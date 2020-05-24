@@ -1,6 +1,6 @@
 edit: code . 
 todo: n todo.md
-n Invoke-OKCommand.ps1
+code Invoke-OKCommand.ps1
 dot: ". .\Invoke-OKCommand.ps1" | clipp; # Install OK
 Get-Content README.md  # README
 # Use Script Analyzer to lint the code
