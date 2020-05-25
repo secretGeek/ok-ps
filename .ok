@@ -1,8 +1,1 @@
-. .\_ok.ps1 # Install OK
-Get-Content README.md  # README
-git add *; git commit . -m "$arg"; git out; git push;  # commit -- add message
-# Use Script Analyzer to lint the code
-Invoke-ScriptAnalyzer .\_ok.ps1 -Ex PSAvoidUsingWriteHost | Count # how many messages from script analyzer?
-Invoke-ScriptAnalyzer .\_ok.ps1 -Ex PSAvoidUsingWriteHost | group-object -property severity # How many of each severity?
-Invoke-ScriptAnalyzer .\_ok.ps1 -Ex PSAvoidUsingWriteHost | group RuleName | sort count -d | ft Name, Count # Each type
-Invoke-ScriptAnalyzer .\_ok.ps1 -ExcludeRule PSAvoidUsingWriteHost
+# This file is not used because .ok-ps has higher precedence.

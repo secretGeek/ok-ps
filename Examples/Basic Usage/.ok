@@ -1,0 +1,10 @@
+# A basic .ok file!
+# if you have `ok` installed, type "ok" to list the commands it provides
+dir # <-- type "ok 1" to run that command
+cls # <-- type "ok 2" to run that command
+cat .ok # <-- type "ok 3" to look at this .ok file...
+write-host "Each command is a 'one-liner'" -f Yellow
+write-host "One liners rule..." -f Magenta
+write-host "But if one-liners are too big..." -f Blue
+& .\PrintMessage.ps1 # Use 'ok 7' to run that command...
+cd ..; cls; ok; # See other examples

@@ -1,0 +1,14 @@
+edit: code . 
+todo: n todo.md
+code Invoke-OKCommand.ps1
+dot: ". .\Invoke-OKCommand.ps1" | clipp; # Install OK
+cd Examples; ok; # see Examples
+Get-Content README.md  # README
+# Use Script Analyzer to lint the code
+Invoke-ScriptAnalyzer .\Invoke-OKCommand.ps1 -ExcludeRule PSAvoidUsingWriteHost | ft -auto
+Invoke-ScriptAnalyzer *.ps1 -ExcludeRule PSAvoidUsingWriteHost | ft -auto
+
+# Run Tests
+Invoke-Pester  # ALL tests
+Invoke-Pester -Script .\Get-CommandLength.Tests.ps1
+Invoke-Pester -Script .\Show-HighlightedCode.Tests.ps1

@@ -6,7 +6,7 @@ if (test-path alias:cd) {
 # We create our `cd` function as a wrapper around set-location that calls 'ok'
 function cd ([parameter(ValueFromRemainingArguments = $true)][string]$Passthrough) {
   Set-Location $Passthrough
-  ok # Call 'ok'
+  Invoke-OK # Call 'ok'
 }
 
 # Consider: do the same for pushd and popd...?
