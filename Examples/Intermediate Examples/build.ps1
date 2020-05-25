@@ -12,9 +12,6 @@ $messages =
 	"For a script to finish...",
 	"Never sure if they should just press Ctrl-C...",
 	"Or if it will go on for ever...",
-	"Building code...",
-	"Reticulating splines....",
-	
 
 $messages | Foreach-Object {
 	Write-host $_ 

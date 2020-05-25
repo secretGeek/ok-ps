@@ -233,7 +233,7 @@ function Invoke-OKCommand {
     write-host "> " -f Magenta -NoNewline;
     Show-HighlightedOKCode -code $command.commandText -CommentOffset 0 -MaxKeyLength 0;
     write-host "";
-
+    # note arg is a list of object, and can be used in the commandText
     invoke-expression $command.commandText;
 }
 
@@ -242,22 +242,29 @@ function Invoke-OKCommand {
 Inspect or run commands from your ok-file
 
 .DESCRIPTION
-"Invoke-OK" (and the entire OK module) rely on first finding a file in the current folder ".ok" (or ".ok-ps"), containing useful powershell one-liners you like to use in that folder.
+"Invoke-OK" (and the entire OK module) rely on first finding a file in the current folder called ".ok" (or ".ok-ps"), full of useful powershell one-liners you like to use in that folder.
 
  ("Invoke-OK" is usually called by its suggested alias, `ok`. That alias is used in the examples below.)
 
 Call "ok" with **no parameters** and the ok-file will be pretty printed, with a number before each powershell one-liner.
 
-Call "ok {number}"" to run the line of code that corresponds to that number.
+Call "ok {number}" to run the line of code that corresponds to that number.
 
-You can also have named commands. Just prefix the one-liner with a name and a colon, e.g. your ok file could contain:
+You can also have "named" commands. Just prefix the one-liner with a name and a colon, e.g. your ok file could contain:
 
     deploy: robocopy *.ps1 c:\launchplace /MIR
 
-Call "ok deploy" to run that command.
+...then you would use "ok deploy" to run that command.
+
+One liners can accept parameters, for example, if your one liner said:
+
+    push: git add *; git commit . -m "$arg"; git push;
+
+Then you could call: "ok push minor changes" to make a git commit with the message "minor changes"
+
 
 .PARAMETER commandName
-This optional command can specify a number of a user-command.
+This optional command can specify the name or number of a user-command.
 
 If specified, Invoke-OK will call Invoke-OKCommand and pass it the name of the command file and the commandName.
 
@@ -296,7 +303,6 @@ function Invoke-OK {
             Invoke-OKCommand -okfileinfo $okFileInfo -commandName $commandName -arg $arg;
         }
     }
-    # else silence;
 }
 
 # all knowledge about how to probe for an determine the location of the ok-file is encapsulated in this function.
