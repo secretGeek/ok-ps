@@ -69,6 +69,7 @@ function Get-OKCommand($file) {
                         write-host "' mapped to " -f Red -no;
                         write-host "$num" -f white;
                         #>
+                        # suggest
                         $commandInfo.type = [OKCommandType]::Numbered
                         $key = ("" + $num);
                     }
@@ -91,7 +92,7 @@ function Get-OKCommand($file) {
         }
     }
 
-    #TODO: this will be configurable
+    # Suggestion: this could be much more configurable
     $alignComments = $true;
     if ($alignComments) {
         $maxCommandLength = ($commands.Values | ForEach-Object {
@@ -163,7 +164,33 @@ function Show-OKFile($okFileInfo) {
             if ($c.Type -eq [OKCommandType]::Numbered){
                 write-host $c.key -f DarkCyan -NoNewline
             } else {
+                # writing a command.
                 write-host $c.key -f Cyan -NoNewline
+                <#
+                $commandColor = [ConsoleColor]::Cyan;
+                if ($c.key -eq "now") {
+                    $commandColor = [ConsoleColor]::White;
+                }
+                elseif ($c.key -eq "today" -or $c.key -eq "todo" -or $c.key -eq "ttd") {
+                    $commandColor = [ConsoleColor]::Yellow;
+                }
+                elseif ($c.key -eq "due" -or $c.key -eq "bug" -or $c.key -eq "error"  -or $c.key -eq "bugs" -or $c.key -eq "errors") {
+                    $commandColor = [ConsoleColor]::Red;
+                }
+                elseif ($c.key -eq "search" -or $c.key -eq "find") {
+                        $commandColor = [ConsoleColor]::Magenta;
+                }
+                elseif ($c.key -eq "build") {
+                    $commandColor = [ConsoleColor]::DarkBlue;
+                }
+                elseif ($c.key -eq "publish" -or $c.key -eq "pub") {
+                    $commandColor = [ConsoleColor]::Green;
+                }
+                elseif ($c.key -eq "plan" -or $c.key -eq "idea") {
+                    $commandColor = [ConsoleColor]::Blue;
+                }
+                write-host $c.key -f $commandColor -NoNewline
+                #>
             }
             write-host ": " -f Cyan -NoNewline
             Show-HighlightedOKCode -code $c.commandText -CommentOffset $okFileInfo.commentOffset -MaxKeyLength $okFileInfo.MaxKeyWidth;
@@ -185,12 +212,13 @@ function Invoke-OKCommand {
     )
 
     #TODO: what if it's not a valid command?
-    # see if it's close to valid... get candidates if exactly 1 -- run it.
-    # if more than 1 -- say "did you mean" and show those.
-    # if it's less than 1 -- error... show file.
+    # see if it's "close" to valid... get candidates. If exactly 1 -- run it.
+    # If more than 1 -- say "did you mean" and show those.
+    # If it's less than 1 -- error... show file.
     if ($commandName -match "^[0-9]+$") {
         $commandIndex = ($commandName -as "int") - 1;
-        if ($commandIndex -ge 0 -and $commandIndex -lt $okFileInfo.commands.Count) {
+        $numCommands = (($okFileInfo.commands).Keys).Count;
+        if ($commandIndex -ge 0 -and $commandIndex -lt ($numCommands)) { 
             $command = $okFileInfo.commands[$commandIndex];
         } else {
             $command = $null;
