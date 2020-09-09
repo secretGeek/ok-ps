@@ -29,14 +29,34 @@ function Show-HighlightedToken {
           write-host (" " * $numSpaces) -NoNewline
           $charNum += $numSpaces;
         }
-        if ($token.StartLine -ne $token.Endline -and $token.Type -eq [System.Management.Automation.PSTokenType]::String) {
-          $hereString = $true;
-          Write-Host "`@`"`n" -ForegroundColor $tokenColor -NoNewLine;
-        }
+
+				if ($token.Type -eq [System.Management.Automation.PSTokenType]::String) {
+					if ($token.StartLine -ne $token.Endline) {
+						$hereString = $true;
+						Write-Host "`@`"`n" -ForegroundColor $tokenColor -NoNewLine;
+					} else {
+					  # BUG: unable to determine when to use " versus ' ?
+					  Write-Host "`"" -ForegroundColor $tokenColor -NoNewLine;
+						#$token | Select *;
+					}
+				}
+
+				if ($token.Type -eq [System.Management.Automation.PSTokenType]::Variable) {
+					# Give me my $ back
+					#$tokenColor = (Get-TokenTypeColor $token.Type);
+					#$token | Select *;
+					Write-Host "`$`$" -ForegroundColor $tokenColor -NoNewLine;
+				}
+				
         Write-Host ($token.Content) -ForegroundColor $tokenColor -NoNewLine
-        if ($hereString) {
-          Write-Host "`n`"`@" -ForegroundColor $tokenColor -NoNewLine;
-        }
+				
+				if ($token.Type -eq [System.Management.Automation.PSTokenType]::String) {
+					if ($hereString) {
+						Write-Host "`n`"`@" -ForegroundColor $tokenColor -NoNewLine;
+					} else {
+						Write-Host "`"" -ForegroundColor $tokenColor -NoNewLine;
+					}
+				}
         $lineNum = $token.EndLine;
         $charNum = $token.EndColumn;
       };

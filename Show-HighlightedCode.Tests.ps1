@@ -47,4 +47,16 @@ Describe "Show-HighlightedCode" {
         Assert-MockCalled Write-Host -Exactly 1 -Scope It -ParameterFilter { $Object -eq "`$arg" }
     }
 
+    It "Outputs accurate code including quotes" {
+        $code = "echo `"Hello`"";
+        $commentOffset = $code.Length + 100;
+        Get-Token $code | Show-HighlightedOKToken -CommentOffset $CommentOffset | out-null
+        #Get-Token $code | ft | out-host;
+        Assert-MockCalled Write-Host -Exactly 1 -Scope It -ParameterFilter { $Object -eq "echo" }
+        Assert-MockCalled Write-Host -Exactly 1 -Scope It -ParameterFilter { $Object -eq " " }
+				Assert-MockCalled Write-Host -Exactly 1 -Scope It -ParameterFilter { $Object -eq "`"Hello`"" }
+        #Assert-MockCalled Write-Host -Exactly 1 -Scope It -ParameterFilter { $Object -eq "Hello" }
+				#Assert-MockCalled Write-Host -Exactly 1 -Scope It -ParameterFilter { $Object -eq "`"" }
+    }
+
 }
