@@ -261,6 +261,8 @@ function Invoke-OKCommand {
     write-host "> " -f Magenta -NoNewline;
     Show-HighlightedOKCode -code $command.commandText -CommentOffset 0 -MaxKeyLength 0;
     write-host "";
+    # Write command to history, so you can scroll up and see it there/edit it.
+    [Microsoft.PowerShell.PSConsoleReadLine]::AddToHistory($command.commandText)
     # note arg is a list of object, and can be used in the commandText
     invoke-expression $command.commandText;
 }
