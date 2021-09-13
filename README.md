@@ -16,7 +16,7 @@ Imagine your `.ok` file contains these three lines:
     deploy.ps1 # deploys the project
     commit_push.ps1 $arg[0] # commit with comment, rebase and push
 
-A `.ok` file acts as a neat place to document how a given project works. This is useful if you have many projects, or many people working on a project. It's such a little file; it's quick to write and easy to edit.
+A `.ok` file acts as a neat place to document how a given project works. This is useful if you have many projects, or many people working on a project. It's such a little file; it's quick to write, follows a [specification](#language-specification) (still in draft) and easy to edit.
 
 But it's not just a document, it's executable.
 
@@ -51,7 +51,32 @@ And you can pass simple arguments to the commands. For example:
 It will give you the `ok` command (which is really an alias to `Invoke-OK`)
 
 
+## .ok file specficiation
+
+An ok file consists of lines of text.
+
+each line is finished by a line break, or an end of file marker.
+
+each line either:
+
+- starts with a '#' character - indicating it is a comment. (can be preceeded by whitespace - spaces, tabs etc.)
+- or starts with a "command name" followed by a colon. A command name followed by a colon is currently identified by this regex:
+
+        [regex]$rx = "^[ `t]*(?<commandName>[A-Za-z_][A-Za-z0-9-_.]*)[ `t]*\:(?<commandText>.*)$";
+
+- or matched neither of the above... in which case it is treated as a command. (like the command above, but with a number as its name.)
+    - it will be a command in whatever language your implementation of .ok is using.
+
+- (the target language can be specified in a .ok-config file, either locally or in your "ok-home" or in your "~", with precedence/rank descending in that order.)
+
+- if the instance of .ok is specified to use a language you don't have, then you can look for an executor for that language at ok central or another repository system. i have "readers" for every package system. I have plugins for those other package systems.
+
+- the package downloaded from ok central should include sufficient instructions that given my current language and my target language it can determine the relevant steps to perform. it might be... The .ok download language is specified in the .ok "systems family of languages" document.
+
+- it is being translated into many languages including "angry teenager."
+
+
 
 -----
 
-See <http://secretgeek.net/ok> for the blog post launching (and describing) "ok"
+See <https://secretgeek.net/ok> for the blog post launching (and describing) "ok"

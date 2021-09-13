@@ -1,23 +1,103 @@
 # Todo items
 
 **TOC**
-- [Inbox]
+
+- [Done for next release (and or, unpublicised)]
+- Inbox (unclassified)
 - [Highest Priority]
 - [DONE] (somewhere after line 207)
+
+# Done for next release (and or, unpublicised)
 
 
 # Inbox (unclassified)
 
+- [ ] Look at all the lines that are longer than screen - 
+	- find common substrings between any lines - the removal of which would help the total numbers of "rows wider than the screen in width" would be reduced to a perfect zero.
+	- draw those separately in two other colors like this:
+	
+		[[SHORTNAME]] dkcsjncscjsijcnsnclksnclksnclksnclkjsnclkjsnljknscklsc
+		^^ MAGENTA    ^^ "BRIGHT" YELLOW
+	
+	
 
+[ ] `ok *` or `ok f*` should 
+
+	1. search for any command that broadly matches the description
+	
+		::- list them, with new numbering.
+	
+		::- note that this would only happen if the first parameter contains a wildcard, e.g. `* or ?` (consider: a regex delimited with slashes, such as `/.*/` 's)
+		
+		::- handle `ok pattern number` for running the thing with that new number.
+		
+		e.g.   we type `ok f*` and see:
+		
+		1. find $args
+		2. file-new $args
+		3. format C: --force --override --accept-all-defaults
+
+And if you then type:
+
+		ok f* 2
+
+...by pressing up, typing " 2" and enter...
+
+... then it will run that `file-new $args` command -- taking any other remaining arguments for the command,
+
+.e.g. `ok f* 2 README.md` would call that command `file-new` and pass it the argument `README.md`.
+
+The listed command could be anything. `file-new` for example is not a standard name and may indicate anything at all -- it could be a script that will format C:.
+
+
+
+
+
+
+[ ] 'help ok' calls 'help okwrapper' on my system... it should have a remark that tells you to try 'help invoke-ok' for detailed help on the ok system.
+
+[ ] Tokenizing issues... rewriting syntax highlighter! https://til.secretgeek.net/powershell/tokenize_issue.html
+
+
+[ ] ok writes the current line to history. Controversial! and buggy.
+	- BUG is: if the current line contains a tab character - it writes that as "^I"
+	test:write-host "thing"		# hello
+	is displayed as:
+	test:write-host "thing"^I^I# hello
+	...though if you copy and paste it, it becomes a "	"
 
 # Highest priority
+
+- [ ] - [ ] bug in Invoke-OKCommand -
+	Given a .ok file with a line this line "\ninit: \n" -- this error occurs.
+
+		Get-Token : Cannot bind argument to parameter 'code' because it is an empty string.
+		At C:\apps\Nimble\gh\util\Powershell\Scriptlets\ok\Invoke-OKCommand.ps1:88 char:50
+		+ ...           $commandInfo.Tokens = (Get-Token $commandInfo.commandText);
+		+                                                ~~~~~~~~~~~~~~~~~~~~~~~~
+			+ CategoryInfo          : InvalidData: (:) [Get-Token], ParameterBindingValidationException
+			+ FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Get-Token
+
+		Get-CommandLength : Cannot bind argument to parameter 'Tokens' because it is null.
+		At C:\apps\Nimble\gh\util\Powershell\Scriptlets\ok\Invoke-OKCommand.ps1:103 char:57
+		+                     $commandLength = (Get-CommandLength ($c.tokens));
+		+                                                         ~~~~~~~~~~~
+			+ CategoryInfo          : InvalidData: (:) [Get-CommandLength], ParameterBindingValidationException
+			+ FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Get-CommandLength
+
+		Get-CommandLength : Cannot bind argument to parameter 'Tokens' because it is null.
+		At C:\apps\Nimble\gh\util\Powershell\Scriptlets\ok\Invoke-OKCommand.ps1:122 char:53
+		+                 $commandLength = (Get-CommandLength ($c.tokens));
+		+                                                     ~~~~~~~~~~~
+			+ CategoryInfo          : InvalidData: (:) [Get-CommandLength], ParameterBindingValidationException
+			+ FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Get-CommandLength
 
 - [ ] Show number or name... numbers are not contiguous.
 
 - [ ] Make a TECHNOTES folder... for all the documentation
 	- in the .ok for that folder use NPX markserve to let local users browse it... https://www.npmjs.com/package/markserv
 		- describe all options and error messages
-		
+
 
 - [ ] Config...
 	- [ ] need a sample script to read/write json settings (simple booleans) in a localappdata subfolder named ok-ps.
@@ -26,7 +106,7 @@
 
 
 	- [ ] Command Name Error Handling and edge cases
-		
+
 			doeke suggests -- use levenshtein distance when checking command.
 
 		- I guess in this case it would suggest 'todo' --
@@ -48,28 +128,15 @@
 				> hg patents
 				hg: unknown command 'patents'
 				(did you mean one of parents, paths, update?)
-				
+
 		- both the previous can be solved with levenshtein I expect.
 
 
-- [x] don't put `("-" * commandNameLength)` dashes at start of comment line:
-	- put spaces and then a '#'
 
 
 - [ ] verbosity: do not show the existing command, or other guff, depends on verbose level.
 	- see how -verbose works -- and review every write-host.
 
-- [x] Allow dots after the first character in names of commands.
-
-- [x] ok help does nothing.
-			- now help is returned if you run "ok help" (or any of these: ? /? -? --? /help --help -h --h /h)
-
-- [x] Trailing white space causes it to incorrectly measure location of final comment for some commands, and decide it is past the end.
-		  e.g.
-				3: ". .\profile.ps1" | clipp      # dot profile
-			gets written
-				3: ". .\profile.ps1" | clipp
-				                             # dot profile
 
 
 
@@ -88,9 +155,6 @@
 
 	- [ ] maybe just 'silentlyContinue on those, with null token. '(Get-Command "ConvertTo-Json" -errorAction SilentlyContinue)
 
-- [x] when calculating longest command -- only consider commands that have a comment
-
-- [x] when writing the command (at go time) it says the offset is 0 so it goes to a new line.... it shouldn't do that if offset is zero.
 
 ## Document:
 
@@ -100,14 +164,14 @@
 
 ## Comment-Based Help
 
+i.e. 'help ok' should return meaningful stuff.
+
 [read about it here](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_comment_based_help#comment-based-help-keywords)
 
 invoke-ok:
-	- [x] synopsis
-	- [x] description
-	- parameters:
-		- each parameter
-- related links
+	- [ ] parameters:
+		- [ ] each parameter
+- [ ] related links
 - notes
 	- [ ] I am not sure what to put in notes. [online description](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_comment_based_help#notes)
 - technical help
@@ -306,4 +370,33 @@ done.
 			> ok tod
 			ok: command 'tod' is ambiguous, did you mean:
 						todoo todo
+
+## DONE:
+
+10:09 AM Saturday, 27 February 2021
+
+
+- [x] don't put `("-" * commandNameLength)` dashes at start of comment line:
+	- put spaces and then a '#'
+
+- [x] Allow dots after the first character in names of commands.
+
+- [x] ok help does nothing.
+			- now help is returned if you run "ok help" (or any of these: ? /? -? --? /help --help -h --h /h)
+
+- [x] Trailing white space causes it to incorrectly measure location of final comment for some commands, and decide it is past the end.
+		  e.g.
+				3: ". .\profile.ps1" | clipp      # dot profile
+			gets written
+				3: ". .\profile.ps1" | clipp
+				                             # dot profile
+
+- [x] when calculating longest command -- only consider commands that have a comment
+
+- [x] when writing the command (at go time) it says the offset is 0 so it goes to a new line.... it shouldn't do that if offset is zero.
+
+
+- Comment based help (i.e. "help invoke-ok")
+	- [x] synopsis
+	- [x] description
 

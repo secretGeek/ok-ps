@@ -155,15 +155,16 @@ function Show-OKFile($okFileInfo) {
     $okFileInfo.lines | Foreach-Object {
         [OKCommandInfo]$c = $_;
         if ($c.Type -eq [OKCommandType]::Comment) {
-            write-host (" " * ($maxKeyWidth)) -NoNewline;
-            write-host "# " -NoNewline -f Cyan;
-            write-host $c.commandText.TrimStart().TrimStart('#').TrimStart() -f Cyan
+            write-host ("#" * ($maxKeyWidth)) -NoNewline -f DarkGray;
+            write-host ": " -NoNewline -f Cyan;
+            write-host $c.commandText.TrimStart().TrimStart('#').TrimStart() -f Green
         }
         else {
             write-host (" " * ($maxKeyWidth - $c.key.length)) -NoNewline
-            if ($c.Type -eq [OKCommandType]::Numbered){
+            if ($c.Type -eq [OKCommandType]::Numbered) {
                 write-host $c.key -f DarkCyan -NoNewline
-            } else {
+            }
+            else {
                 # writing a command.
                 write-host $c.key -f Cyan -NoNewline
                 <#
@@ -220,10 +221,12 @@ function Invoke-OKCommand {
         $numCommands = (($okFileInfo.commands).Keys).Count;
         if ($commandIndex -ge 0 -and $commandIndex -lt ($numCommands)) { 
             $command = $okFileInfo.commands[$commandIndex];
-        } else {
+        }
+        else {
             $command = $null;
         }
-    } else {
+    }
+    else {
         $command = $okFileInfo.commands[("" + $commandName)];
     }
     if ($null -eq $command) {
@@ -261,8 +264,8 @@ function Invoke-OKCommand {
     write-host "> " -f Magenta -NoNewline;
     Show-HighlightedOKCode -code $command.commandText -CommentOffset 0 -MaxKeyLength 0;
     write-host "";
-    # Write command to history, so you can scroll up and see it there/edit it.
-    [Microsoft.PowerShell.PSConsoleReadLine]::AddToHistory($command.commandText)
+    # Write command to history (but in comment form), so you can scroll up and see it there/edit it.
+    [Microsoft.PowerShell.PSConsoleReadLine]::AddToHistory("# " + $command.commandText)
     # note arg is a list of object, and can be used in the commandText
     invoke-expression $command.commandText;
 }
@@ -335,14 +338,14 @@ function Invoke-OK {
     }
 }
 
-# all knowledge about how to probe for an determine the location of the ok-file is encapsulated in this function.
+# all knowledge about how to probe for and determine the location of the ok-file is encapsulated in this function.
 function Get-OKFileLocation () {
     if (test-path ".\.ok-ps") {
-       return ".\.ok-ps"
+        return ".\.ok-ps"
     }
 
     elseif (test-path ".\.ok") {
-       return ".\.ok"
+        return ".\.ok"
     }
 
     return $null;
