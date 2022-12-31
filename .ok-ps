@@ -13,4 +13,4 @@ Invoke-Pester  # ALL tests
 Invoke-Pester -Script .\Get-CommandLength.Tests.ps1
 Invoke-Pester -Script .\Show-HighlightedCode.Tests.ps1
 
-test: write-host "thing"		# hello
+test: Write-Host "thing"		# hello

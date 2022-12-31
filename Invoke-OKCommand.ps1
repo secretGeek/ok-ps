@@ -1,7 +1,9 @@
-
+#. (Join-Path $PSScriptRoot "Get-Token.ps1")
 . (Join-Path $PSScriptRoot "Get-Token.ps1")
+#. (Join-Path $PSScriptRoot "Get-CommandLength.ps1")
 . (Join-Path $PSScriptRoot "Get-CommandLength.ps1")
-. (Join-Path $PSScriptRoot "Show-HighlightedCode.ps1")
+#. (Join-Path $PSScriptRoot "Show-HighlightedCode.ps1")
+. (Join-Path $PSScriptRoot "Show-OKCode.ps1")
 
 Enum OKCommandType {
     Comment = 1
@@ -16,8 +18,9 @@ Class OKCommandInfo {
     [OKCommandType]$type # what type of line is this? A comment, numbered or named
     [string]$commandText # everything other than the command name (if there is one)
     [int]$num # number of the command (if it is a name or number command only)
-    [string]$key # either ("" + $number) or $commandName
-    [System.Management.Automation.PSToken[]]$tokens
+    [string]$key # either ("" + $number) or $commandName, i.e. "5" or "build"
+    [System.Management.Automation.Language.Token[]]$tokens
+    #[System.Management.Automation.PSToken[]]$tokens
     [int]$commentOffset # how many chars from the start of the command to the first comment token (useful to know this for aligning comments)
 }
 
@@ -46,7 +49,7 @@ function Get-OKCommand($file) {
             # skip blank line
         }
         else {
-            $commandInfo = new-object OKCommandInfo
+            $commandInfo = New-Object OKCommandInfo
             $commandInfo.physicalLineNum = $physicalLineNum;
 
             if ($line.indexOf('#') -eq 0) {
@@ -61,7 +64,7 @@ function Get-OKCommand($file) {
                     $key = $groups[0].Groups["commandName"].Value.Trim();
                     $num = $num + 1;
                     if ($null -ne $commands[$key]) {
-                        # Name has been used.
+                        # Name has already been used.
                         # (verbose: show warning)
                         <#
                         write-host "ok: duplicate commandname '" -f Red -no;
@@ -86,9 +89,9 @@ function Get-OKCommand($file) {
 
                 $maxKeyWidth = [math]::max( $maxKeyWidth , $commandInfo.key.Length);
                 $commandInfo.Tokens = (Get-Token $commandInfo.commandText);
-                $commands.Add($commandInfo.key, $commandInfo) | out-null;
+                $commands.Add($commandInfo.key, $commandInfo) | Out-Null;
             }
-            $lines.Add($commandInfo) | out-null;
+            $lines.Add($commandInfo) | Out-Null;
         }
     }
 
@@ -120,6 +123,7 @@ function Get-OKCommand($file) {
         $maxCommentLength = ($commands.Values | ForEach-Object {
                 [OKCommandInfo]$c = $_;
                 $commandLength = (Get-CommandLength ($c.tokens));
+                #$commandLength = (Get-CommandLength ($c.tokens));
                 if ($commandLength -gt 0) {
                     # return the length of the comment.. (only counts if there *is* a command)
                     #write-host "commandLength $commandLength $($c.CommandText)" -f red;
@@ -152,21 +156,21 @@ function Get-OKCommand($file) {
 
 function Show-OKFile($okFileInfo) {
     $maxKeyWidth = $okFileInfo.maxKeyWidth;
-    $okFileInfo.lines | Foreach-Object {
+    $okFileInfo.lines | ForEach-Object {
         [OKCommandInfo]$c = $_;
         if ($c.Type -eq [OKCommandType]::Comment) {
-            write-host ("#" * ($maxKeyWidth)) -NoNewline -f DarkGray;
-            write-host ": " -NoNewline -f Cyan;
-            write-host $c.commandText.TrimStart().TrimStart('#').TrimStart() -f Green
+            Write-Host ("#" * ($maxKeyWidth)) -NoNewline -f DarkGray;
+            Write-Host ": " -NoNewline -f Cyan;
+            Write-Host $c.commandText.TrimStart().TrimStart('#').TrimStart() -f Green
         }
         else {
-            write-host (" " * ($maxKeyWidth - $c.key.length)) -NoNewline
+            Write-Host (" " * ($maxKeyWidth - $c.key.length)) -NoNewline
             if ($c.Type -eq [OKCommandType]::Numbered) {
-                write-host $c.key -f DarkCyan -NoNewline
+                Write-Host $c.key -f DarkCyan -NoNewline
             }
             else {
                 # writing a command.
-                write-host $c.key -f Cyan -NoNewline
+                Write-Host $c.key -f Cyan -NoNewline
                 <#
                 $commandColor = [ConsoleColor]::Cyan;
                 if ($c.key -eq "now") {
@@ -193,9 +197,9 @@ function Show-OKFile($okFileInfo) {
                 write-host $c.key -f $commandColor -NoNewline
                 #>
             }
-            write-host ": " -f Cyan -NoNewline
-            Show-HighlightedOKCode -code $c.commandText -CommentOffset $okFileInfo.commentOffset -MaxKeyLength $okFileInfo.MaxKeyWidth;
-            write-host "";
+            Write-Host ": " -f Cyan -NoNewline
+            Show-OKCode -code $c.commandText -CommentOffset $okFileInfo.commentOffset -MaxKeyLength $okFileInfo.MaxKeyWidth;
+            Write-Host "";
         }
     }
 }
@@ -217,6 +221,7 @@ function Invoke-OKCommand {
     # If more than 1 -- say "did you mean" and show those.
     # If it's less than 1 -- error... show file.
     if ($commandName -match "^[0-9]+$") {
+        # it is a number.
         $commandIndex = ($commandName -as "int") - 1;
         $numCommands = (($okFileInfo.commands).Keys).Count;
         if ($commandIndex -ge 0 -and $commandIndex -lt ($numCommands)) { 
@@ -233,41 +238,43 @@ function Invoke-OKCommand {
         $candidates = New-Object System.Collections.ArrayList
 
         $okFileInfo.commands.keys |
-        Where-Object { $_ -like ($commandName + "*") } |
-        Foreach-Object {
-            $candidates.Add($_) | out-null;
-        }
+            Where-Object { $_ -like ($commandName + "*") } |
+            ForEach-Object {
+                $candidates.Add($_) | Out-Null;
+            }
         if ($null -eq $candidates -or $candidates.Count -eq 0) {
-            Write-host "ok: unknown command " -f Red -no
-            write-host "'" -no;
-            write-host "$commandName" -f yellow -no;
-            write-host "'";
-            Write-host "(use 'ok' for a list of local commands, or 'ok help' for general commands)"
+            Write-Host "ok: unknown command " -f Red -no
+            Write-Host "'" -no;
+            Write-Host "$commandName" -f yellow -no;
+            Write-Host "'";
+            Write-Host "(use 'ok' for a list of local commands, or 'ok help' for general commands)"
             return;
         }
         if ($candidates.Count -gt 1) {
-            Write-host "ok: command '$commandName' is ambiguous, did you mean:`n`t" -no
-            #$candidates;
+            Write-Host "ok: command '$commandName' is ambiguous, did you mean:`n`t" -no
+
             $candidates | ForEach-Object {
-                write-host "$($_) " -no -f yellow
+                Write-Host "$($_) " -no -f yellow
             }
             return;
         }
         #TODO: check verbose
-        write-host "ok: No such command! " -f Yellow -NoNewLine
-        write-host "Assume you meant: " -f gray -NoNewline
-        write-host "'$($candidates[0])'" -f White -NoNewLine
-        write-host "..." -f gray
+        Write-Host "ok: No such command! " -f Yellow -NoNewline
+        Write-Host "Assume you meant: " -f gray -NoNewline
+        Write-Host "'$($candidates[0])'" -f White -NoNewline
+        Write-Host "..." -f gray
         $command = $okFileInfo.commands[("" + $candidates[0])];
     }
+
     #TODO: check verbose
-    write-host "> " -f Magenta -NoNewline;
-    Show-HighlightedOKCode -code $command.commandText -CommentOffset 0 -MaxKeyLength 0;
-    write-host "";
+    Write-Host "> " -f Magenta -NoNewline;
+    #Show-HighlightedOKCode -code $command.commandText -CommentOffset 0 -MaxKeyLength 0;
+    Show-OKCode -code $command.commandText -CommentOffset 0 -MaxKeyLength 0;
+    Write-Host "";
     # Write command to history (but in comment form), so you can scroll up and see it there/edit it.
     [Microsoft.PowerShell.PSConsoleReadLine]::AddToHistory("# " + $command.commandText)
     # note arg is a list of object, and can be used in the commandText
-    invoke-expression $command.commandText;
+    Invoke-Expression $command.commandText;
 }
 
 <#
@@ -279,7 +286,7 @@ Inspect or run commands from your ok-file
 
  ("Invoke-OK" is usually called by its suggested alias, `ok`. That alias is used in the examples below.)
 
-Call "ok" with **no parameters** and the ok-file will be pretty printed, with a number before each powershell one-liner.
+Call "ok" with **no parameters** and the ok-file will be `pretty printed`, with a number before each powershell one-liner.
 
 Call "ok {number}" to run the line of code that corresponds to that number.
 
@@ -287,9 +294,9 @@ You can also have "named" commands. Just prefix the one-liner with a name and a 
 
     deploy: robocopy *.ps1 c:\launchplace /MIR
 
-...then you would use "ok deploy" to run that command.
+...then you would use `ok deploy` to run that robocopy command.
 
-One liners can accept parameters, for example, if your one liner said:
+These one liners can accept parameters, for example, if your one-liner said:
 
     push: git add *; git commit . -m "$arg"; git push;
 
@@ -322,7 +329,7 @@ function Invoke-OK {
     )
 
     if ($commandName -match "^(/|--|-|\\|)(h|\?|help)$") {
-        get-help invoke-ok;
+        Get-Help invoke-ok;
         return;
     }
     $file = (Get-OKFileLocation);
@@ -336,15 +343,23 @@ function Invoke-OK {
             Invoke-OKCommand -okfileinfo $okFileInfo -commandName $commandName -arg $arg;
         }
     }
+    else {
+        if ($null -ne $commandName -and '' -ne $commandName) {
+            Write-Host "ok: No .ok or .ok-ps file in which to find this " -ForegroundColor red -NoNewline ;
+            Write-Host "'" -ForegroundColor white -NoNewline ;
+            Write-Host $commandName -ForegroundColor yellow -NoNewline ;
+            Write-Host "'" -ForegroundColor white;
+        }
+    }
 }
 
 # all knowledge about how to probe for and determine the location of the ok-file is encapsulated in this function.
 function Get-OKFileLocation () {
-    if (test-path ".\.ok-ps") {
+    if (Test-Path ".\.ok-ps") {
         return ".\.ok-ps"
     }
 
-    elseif (test-path ".\.ok") {
+    elseif (Test-Path ".\.ok") {
         return ".\.ok"
     }
 
@@ -352,7 +367,7 @@ function Get-OKFileLocation () {
 }
 
 # TODO: export alias from module;
-Set-alias ok Invoke-OK;
+Set-Alias ok Invoke-OK;
 
 # TODO: export from module:
 # Invoke-OK

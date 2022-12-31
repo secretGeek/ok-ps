@@ -1,14 +1,17 @@
 function Get-Token {
-    Param(
-            [Parameter(Mandatory,
-                ValueFromPipeline=$true,
-                HelpMessage='Code to be tokenized',
-                Position=0)]
-            [string]$code,
+	Param(
+		[Parameter(Mandatory,
+			ValueFromPipeline = $true,
+			HelpMessage = "Code to be tokenized",
+			Position = 0)]
+		[string]$code,
 
-            [Parameter(Mandatory=$false)]
-            [ref]$errors
-        )
+		[Parameter(Mandatory = $false)]
+		[ref]$errors
 
-      return [System.Management.Automation.PSParser]::Tokenize($code, [ref]$errors);
-    }
+	)
+	$ParserTokens = $null;
+	$result = [System.Management.Automation.Language.Parser]::ParseInput($code, [ref]$ParserTokens, [ref]$null) | Out-Null;
+	# Result is of type AST, parserTokens is an array.
+	return $ParserTokens;
+}

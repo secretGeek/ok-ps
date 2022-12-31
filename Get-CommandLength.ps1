@@ -1,18 +1,20 @@
 function Get-CommandLength {
     Param(
-      [Parameter(Mandatory,
-          ValueFromPipeline=$false,
-          HelpMessage='Tokens to be highlighted',
-          Position=0)]
-      [System.Management.Automation.PSToken[]]$Tokens
+        [Parameter(Mandatory,
+            ValueFromPipeline = $true,
+            HelpMessage = 'Tokens to be measured',
+            Position = 0)]
+        [System.Management.Automation.Language.Token[]]$Tokens
     )
-    Process{
+    Process {
         $upto = 0;
-        ForEach($token in $tokens){ #Pipeline input
-            if ($token.Type -eq [System.Management.Automation.PSTokenType]::Comment){
+        ForEach ($token in $Tokens) {
+            if ($token.Kind -eq [System.Management.Automation.Language.TokenKind]::Comment -or
+                $token.Kind -eq [System.Management.Automation.Language.TokenKind]::EndOfInput) {
                 return $upto;
-            } else {
-                $upto = ($token.Start + $token.Length);
+            }
+            else {
+                $upto = $token.Extent.EndColumnNumber;
             }
         }
         return $upto;

@@ -12,27 +12,29 @@
 
 # Inbox (unclassified)
 
-- [ ] Look at all the lines that are longer than screen - 
-	- find common substrings between any lines - the removal of which would help the total numbers of "rows wider than the screen in width" would be reduced to a perfect zero.
+- [ ] Look at all the lines that are longer than screen -
+	- find common substrings between any lines
+		- the removal of which would help the total numbers of
+		"rows wider than the screen in width" would be reduced to zero.
 	- draw those separately in two other colors like this:
-	
+
 		[[SHORTNAME]] dkcsjncscjsijcnsnclksnclksnclksnclkjsnclkjsnljknscklsc
 		^^ MAGENTA    ^^ "BRIGHT" YELLOW
-	
-	
 
-[ ] `ok *` or `ok f*` should 
+
+
+[ ] `ok *` or `ok f*` should
 
 	1. search for any command that broadly matches the description
-	
+
 		::- list them, with new numbering.
-	
+
 		::- note that this would only happen if the first parameter contains a wildcard, e.g. `* or ?` (consider: a regex delimited with slashes, such as `/.*/` 's)
-		
+
 		::- handle `ok pattern number` for running the thing with that new number.
-		
+
 		e.g.   we type `ok f*` and see:
-		
+
 		1. find $args
 		2. file-new $args
 		3. format C: --force --override --accept-all-defaults
@@ -47,28 +49,32 @@ And if you then type:
 
 .e.g. `ok f* 2 README.md` would call that command `file-new` and pass it the argument `README.md`.
 
-The listed command could be anything. `file-new` for example is not a standard name and may indicate anything at all -- it could be a script that will format C:.
+(The listed command could be anything. `file-new` for example is not a standard name and may indicate anything at all -- it could be a script that will format C:.)
 
 
 
 
 
 
-[ ] 'help ok' calls 'help okwrapper' on my system... it should have a remark that tells you to try 'help invoke-ok' for detailed help on the ok system.
+[ ] 'help ok' calls 'help okwrapper' on my system...
+	it should have a remark that tells you to try 'help invoke-ok'
+	for detailed help on the ok system.
 
-[ ] Tokenizing issues... rewriting syntax highlighter! https://til.secretgeek.net/powershell/tokenize_issue.html
+[x] Tokenizing issues... rewriting syntax highlighter! https://til.secretgeek.net/powershell/tokenize_issue.html
 
 
-[ ] ok writes the current line to history. Controversial! and buggy.
+[defer] ok writes the current line to history. has a bug
 	- BUG is: if the current line contains a tab character - it writes that as "^I"
 	test:write-host "thing"		# hello
 	is displayed as:
 	test:write-host "thing"^I^I# hello
 	...though if you copy and paste it, it becomes a "	"
+	Write-Host "thing"		# hello
+	(that's a bug in either powershell or console... not mine.)
 
 # Highest priority
 
-- [ ] - [ ] bug in Invoke-OKCommand -
+- [x] - [ ] bug in Invoke-OKCommand -
 	Given a .ok file with a line this line "\ninit: \n" -- this error occurs.
 
 		Get-Token : Cannot bind argument to parameter 'code' because it is an empty string.
@@ -212,16 +218,16 @@ should be
 
 ## User commands and numbers -- intermix properly per doeke's plan
 
-## Consistent name for user commands
+## Consistent name for named commands
 
-verbs
-commands
-custom commands
-user commands
-named commands
+commands and named commands.
+
+not
+- verbs
+- custom commands
 
 
-## Don't let user commands collide with reserved commands
+## Don't let named commands collide with reserved words
 
 from `ok-bash` -- all of these are used, so reserve them for future use.
 (any others?)
@@ -242,8 +248,6 @@ from `ok-bash` -- all of these are used, so reserve them for future use.
 	h
 	help
 	?, /? -? --? -h --h  (maybe these too)
-
-If person
 
 
 ## Publish as module

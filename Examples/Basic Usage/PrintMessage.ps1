@@ -1,4 +1,5 @@
 # A simple script
-write-host "If your 'one-liner' becomes too big..." -f blue
-write-host "just put it in a simple script.." -f green
-write-host "and call the script from ok!" -f cyan
+Write-Host "Hello from a local script (PrintMessage.ps1) 👋" -f yellow
+Write-Host "If your 'one-liner' becomes too big..." -f blue
+Write-Host "just put it in a simple script.." -f green
+Write-Host "and call the script from ok!" -f cyan
