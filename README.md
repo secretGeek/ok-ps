@@ -65,17 +65,6 @@ each line either:
         [regex]$rx = "^[ `t]*(?<commandName>[A-Za-z_][A-Za-z0-9-_.]*)[ `t]*\:(?<commandText>.*)$";
 
 - or matched neither of the above... in which case it is treated as a command. (like the command above, but with a number as its name.)
-    - it will be a command in whatever language your implementation of .ok is using.
-
-- (the target language can be specified in a .ok-config file, either locally or in your "ok-home" or in your "~", with precedence/rank descending in that order.)
-
-- if the instance of .ok is specified to use a language you don't have, then you can look for an executor for that language at ok central or another repository system. i have "readers" for every package system. I have plugins for those other package systems.
-
-- the package downloaded from ok central should include sufficient instructions that given my current language and my target language it can determine the relevant steps to perform. it might be... The .ok download language is specified in the .ok "systems family of languages" document.
-
-- it is being translated into many languages including "angry teenager."
-
-
 
 -----
 

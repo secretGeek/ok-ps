@@ -340,7 +340,7 @@ function Invoke-OK {
             Show-OKFile $okFileInfo;
         }
         else {
-            Invoke-OKCommand -okfileinfo $okFileInfo -commandName $commandName -arg $arg;
+            Invoke-OKCommand -okFileInfo $okFileInfo -commandName $commandName -arg $arg;
         }
     }
     else {
