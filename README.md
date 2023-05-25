@@ -50,8 +50,7 @@ And you can pass simple arguments to the commands. For example:
 
 It will give you the `ok` command (which is really an alias to `Invoke-OK`)
 
-
-## .ok file specficiation
+## .ok file specification
 
 An ok file consists of lines of text.
 
@@ -59,13 +58,37 @@ each line is finished by a line break, or an end of file marker.
 
 each line either:
 
-- starts with a '#' character - indicating it is a comment. (can be preceeded by whitespace - spaces, tabs etc.)
-- or starts with a "command name" followed by a colon. A command name followed by a colon is currently identified by this regex:
+- starts with a '#' character - indicating it is a comment. (can be preceeded by whitespace - spaces, tabs etc.) for example:
+
+        # This is a comment
+
+- or starts with a "command name" followed by a colon, followed by a powershell one-liner. For example:
+
+        build: .\build.ps1   # call `ok build` to run the command `.\build.ps1`
+
+  - "A command name followed by a colon" is identified by this regex:
 
         [regex]$rx = "^[ `t]*(?<commandName>[A-Za-z_][A-Za-z0-9-_.]*)[ `t]*\:(?<commandText>.*)$";
 
+- Or, if it matches neither of the above, it is treated as a pure powershell command. i.e. a powershell one liner. e.g.
 
-- or matched neither of the above... in which case it is treated as a command. (like the command above, but with a number as its name.)
+        .\build.ps1 # execute this by calling `ok 1` (assuming it is the 1st line)
+
+So there are two basic types of commands: named commands, and numbered commands. In fact, all commands are numbered, but if a command has a name, then the name is shown instead of the number.
+
+For example, if this was your `.ok` file:
+
+    build: build.ps1 # builds the project
+    deploy.ps1 # deploys the project
+    commit: commit_push.ps1 $arg[0]
+
+Calling `ok` it would be displayed like this:
+
+	build: build.ps1 # builds the project
+		2: deploy.ps1 # deploys the project
+		3: commit: commit_push.ps1 $arg[0]
+
+And the first line could be called either with `ok build` or `ok 1`.
 
 -----
 
@@ -83,17 +106,19 @@ Or
 
 	Invoke-Pester
 
-Or 
+Or:
 
 	Invoke-Pester -Script .\Get-OKCommandLength.Tests.ps1
 
-
 ## Running Invoke-ScriptAnalyzer
-
 
 Requires the module `PSScriptAnalyzer` -- see [PS Gallery: PSScriptAnalyzer](https://www.powershellgallery.com/packages/PSScriptAnalyzer/)
 
 	Install-Module -Name PSScriptAnalyzer
+
+And can be executed like so:
+
+	Invoke-ScriptAnalyzer *.ps1 -ExcludeRule PSAvoidUsingWriteHost | ft -auto
 
 -----
 
