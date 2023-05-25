@@ -5,7 +5,7 @@ dot: ". .\Invoke-OKCommand.ps1" | clipp; # Install OK
 cd Examples; ok; # see Examples
 Get-Content README.md  # README
 # Use Script Analyzer to lint the code
-Invoke-ScriptAnalyzer .\Invoke-OKCommand.ps1 -ExcludeRule PSAvoidUsingWriteHost | ft -auto                  # This is the commen
+Invoke-ScriptAnalyzer .\Invoke-OKCommand.ps1 -ExcludeRule PSAvoidUsingWriteHost | ft -auto
 Invoke-ScriptAnalyzer *.ps1 -ExcludeRule PSAvoidUsingWriteHost | ft -auto
 
 # Run Tests

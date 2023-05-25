@@ -64,6 +64,7 @@ each line either:
 
         [regex]$rx = "^[ `t]*(?<commandName>[A-Za-z_][A-Za-z0-9-_.]*)[ `t]*\:(?<commandText>.*)$";
 
+
 - or matched neither of the above... in which case it is treated as a command. (like the command above, but with a number as its name.)
 
 -----
@@ -71,8 +72,6 @@ each line either:
 ## Running Unit tests
 
 Powershell Unit tests rely on Pester 4+. Pester 3.4.0 is pre-installed on Windows 10.
-
-
 
 	Install-Module -Name Pester -Force -SkipPublisherCheck
 

@@ -13,14 +13,14 @@
 # Inspired by Steve Gilham here -- excellent work. https://stevegilham.blogspot.com/2011/06/splitting-pascal-cased-names-in.html
 function OKPascalSplit {
     $args | ForEach-Object {
-        if ($_ -is [array]) { 
+        if ($_ -is [array]) {
             return ($_ | ForEach-Object { PascalSplit $_ });
         }
         else {
             #return ($_.ToString() -creplace '[A-Z:_]', ' $&').Trim().Split($null);
             # CONSIDER:
             return ($_.ToString() -creplace '(?<!^)([A-Z:_][a-z]|(?<=[a-z])[A-Z:_])', ' $&').Split($null);
-        }  
+        }
     }
 }
 
@@ -44,11 +44,11 @@ function Show-OKName {
     }
     Process {
 
-        (OKPascalSplit $Name | 
-			ForEach-Object { 
-				Write-Host "$_" -N -ForegroundColor $(if ($i++ % 2 -eq 0) { 
-					$ForeGroundColor 
-				} else { $SecondForeGroundColor }); }); 
+        (OKPascalSplit $Name |
+			ForEach-Object {
+				Write-Host "$_" -N -ForegroundColor $(if ($i++ % 2 -eq 0) {
+					$ForeGroundColor
+				} else { $SecondForeGroundColor }); });
     }
     End {
     }
