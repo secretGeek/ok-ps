@@ -68,4 +68,34 @@ each line either:
 
 -----
 
+## Running Unit tests
+
+Powershell Unit tests rely on Pester 4+. Pester 3.4.0 is pre-installed on Windows 10.
+
+
+
+	Install-Module -Name Pester -Force -SkipPublisherCheck
+
+Run tests like this:
+
+	ok test
+
+Or
+
+	Invoke-Pester
+
+Or 
+
+	Invoke-Pester -Script .\Get-OKCommandLength.Tests.ps1
+
+
+## Running Invoke-ScriptAnalyzer
+
+
+Requires the module `PSScriptAnalyzer` -- see [PS Gallery: PSScriptAnalyzer](https://www.powershellgallery.com/packages/PSScriptAnalyzer/)
+
+	Install-Module -Name PSScriptAnalyzer
+
+-----
+
 See <https://secretgeek.net/ok> for the blog post launching (and describing) "ok"

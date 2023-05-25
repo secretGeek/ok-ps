@@ -1,4 +1,4 @@
-function Get-TokenColor([System.Management.Automation.Language.TokenKind]$tokenKind,
+function Get-OKTokenColor([System.Management.Automation.Language.TokenKind]$tokenKind,
     [System.Management.Automation.Language.TokenFlags]$tokenFlags, $debugMode = $false) {
 
     if ($debugMode) {
@@ -12,8 +12,9 @@ function Get-TokenColor([System.Management.Automation.Language.TokenKind]$tokenK
     if ($tokenKind -eq [System.Management.Automation.Language.TokenKind]::Number) {
         return [System.ConsoleColor]::White;
     }
+
     if ($tokenKind -eq [System.Management.Automation.Language.TokenKind]::Variable) {
-        return [System.ConsoleColor]::Green;
+        return [System.ConsoleColor]::Cyan; #Green;
     }
 
     if ($tokenKind -eq [System.Management.Automation.Language.TokenKind]::Parameter) {
@@ -33,7 +34,7 @@ function Get-TokenColor([System.Management.Automation.Language.TokenKind]$tokenK
     }
 
     if ($tokenKind -eq [System.Management.Automation.Language.TokenKind]::Comment) {
-        return [System.ConsoleColor]::Green;
+        return [System.ConsoleColor]::DarkGreen;
     }
 
     if ($tokenKind -eq [System.Management.Automation.Language.TokenKind]::Param) {
@@ -115,7 +116,7 @@ Attribute) { $c = [System.ConsoleColor]::Yellow;}
 Command) { $c = [System.ConsoleColor]::Yellow;} # DONE
 CommandArgument) { $c = [System.ConsoleColor]::Gray;}
 CommandParameter) { $c = [System.ConsoleColor]::DarkGray;}
-Comment) { $c = [System.ConsoleColor]::Green;}
+Comment) { $c = [System.ConsoleColor]::DakrGreen;}
 GroupEnd) { $c = [System.ConsoleColor]::White;}
 GroupStart) { $c = [System.ConsoleColor]::White;}
 Keyword) { $c = [System.ConsoleColor]::White;}

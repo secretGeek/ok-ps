@@ -1,9 +1,8 @@
-#. (Join-Path $PSScriptRoot "Get-Token.ps1")
-. (Join-Path $PSScriptRoot "Get-Token.ps1")
-#. (Join-Path $PSScriptRoot "Get-CommandLength.ps1")
-. (Join-Path $PSScriptRoot "Get-CommandLength.ps1")
-#. (Join-Path $PSScriptRoot "Show-HighlightedCode.ps1")
+. (Join-Path $PSScriptRoot "Get-OKToken.ps1")
+
+. (Join-Path $PSScriptRoot "Get-OKCommandLength.ps1")
 . (Join-Path $PSScriptRoot "Show-OKCode.ps1")
+
 
 Enum OKCommandType {
     Comment = 1
@@ -88,7 +87,7 @@ function Get-OKCommand($file) {
                 }
 
                 $maxKeyWidth = [math]::max( $maxKeyWidth , $commandInfo.key.Length);
-                $commandInfo.Tokens = (Get-Token $commandInfo.commandText);
+                $commandInfo.Tokens = (Get-OKToken $commandInfo.commandText);
                 $commands.Add($commandInfo.key, $commandInfo) | Out-Null;
             }
             $lines.Add($commandInfo) | Out-Null;
@@ -100,18 +99,30 @@ function Get-OKCommand($file) {
     if ($alignComments) {
         $maxCommandLength = ($commands.Values | ForEach-Object {
                 [OKCommandInfo]$c = $_;
-                # Only consider commands where the total width < console width
+                # Only consider commands where the total width including 'maxkey: command # comment' < console width
+                # Also -- only interested in commands where there *is* a comment
+                $commandLength = (Get-OKCommandLength ($c.tokens));
+                $allegedCommentLength = ($c.CommandText.Length) - $commandLength;
+                if ($allegedCommentLength -gt 0) {
+                    #Write-Host "True Comment: '$($c.CommandText.SubString($commandLength).Trim())'" -f cyan;
+                    $commentLength = $c.CommandText.SubString($commandLength).Trim().Length;
+                }
+                else {
+                    $commentLength = $allegedCommentLength;
+                }
+                #Write-Host "commandLength $commandLength $($c.CommandText)" -f darkblue;
+                #Write-Host "allegedCommentLength $allegedCommentLength $($c.CommandText)" -f darkmagenta;
+                #Write-Host "commentLength $commentLength $($c.CommandText)" -f darkgreen;
 
-                if (($maxKeyLength + 2 + $c.CommandText.Length) -lt $Host.UI.RawUI.WindowSize.Width) {
-                    $commandLength = (Get-CommandLength ($c.tokens));
-                    $commentLength = ($c.CommandText.Length) - $commandLength;
+                #if (($maxKeyLength + 2 + $c.CommandText.Length) -lt $Host.UI.RawUI.WindowSize.Width) {
+                if (($maxKeyLength + 2 + $commandLength + $commentLength) -lt $Host.UI.RawUI.WindowSize.Width) {
                     if ($commentLength -gt 0) {
-                        #write-host "commandLength $commandLength $($c.CommandText)" -f blue;
-                        #write-host "commentLength $commentLength $($c.CommandText)" -f darkblue;
+                        #Write-Host "commandLength $commandLength $($c.CommandText)" -f blue;
+                        #Write-Host "commentLength $commentLength $($c.CommandText)" -f green;
                         $commandLength;
                     }
                     else {
-                        #write-host "commandLength $commandLength $($c.CommandText)" -f magenta;
+                        #Write-Host "commandLength $commandLength $($c.CommandText)" -f magenta;
                         0;
                     }
                 }
@@ -120,10 +131,12 @@ function Get-OKCommand($file) {
                 }
             } | Measure-Object -Maximum | ForEach-Object Maximum);
 
+        #Write-Host "maxCommandLength $maxCommandLength " -f red;
+
         $maxCommentLength = ($commands.Values | ForEach-Object {
                 [OKCommandInfo]$c = $_;
-                $commandLength = (Get-CommandLength ($c.tokens));
-                #$commandLength = (Get-CommandLength ($c.tokens));
+                # Only consider commands where the total width of command and comment < console width
+                $commandLength = (Get-OKCommandLength ($c.tokens));
                 if ($commandLength -gt 0) {
                     # return the length of the comment.. (only counts if there *is* a command)
                     #write-host "commandLength $commandLength $($c.CommandText)" -f red;
@@ -224,7 +237,7 @@ function Invoke-OKCommand {
         # it is a number.
         $commandIndex = ($commandName -as "int") - 1;
         $numCommands = (($okFileInfo.commands).Keys).Count;
-        if ($commandIndex -ge 0 -and $commandIndex -lt ($numCommands)) { 
+        if ($commandIndex -ge 0 -and $commandIndex -lt ($numCommands)) {
             $command = $okFileInfo.commands[$commandIndex];
         }
         else {
@@ -254,7 +267,7 @@ function Invoke-OKCommand {
             Write-Host "ok: command '$commandName' is ambiguous, did you mean:`n`t" -no
 
             $candidates | ForEach-Object {
-                Write-Host "$($_) " -no -f yellow
+                Write-Host "$_ " -no -f yellow
             }
             return;
         }
@@ -268,8 +281,7 @@ function Invoke-OKCommand {
 
     #TODO: check verbose
     Write-Host "> " -f Magenta -NoNewline;
-    #Show-HighlightedOKCode -code $command.commandText -CommentOffset 0 -MaxKeyLength 0;
-    Show-OKCode -code $command.commandText -CommentOffset 0 -MaxKeyLength 0;
+    Show-OKCode -code $command.commandText -CommentOffset -5 -MaxKeyLength 0;
     Write-Host "";
     # Write command to history (but in comment form), so you can scroll up and see it there/edit it.
     [Microsoft.PowerShell.PSConsoleReadLine]::AddToHistory("# " + $command.commandText)
@@ -376,9 +388,8 @@ Set-Alias ok Invoke-OK;
 # Invoke-OK
 
 # Don't export
-# Get-Token
-# Get-CommandLength -- nah way too specific to deserve sharing
-# Show-HighlightedOKCode -code $c.commandText -CommentOffset $commandInfo.commentOffset; -- too specific?
-# Show-HighlightedCode
-# Show-HighlightedToken
-# Show-HighlightedOKToken
+# Get-OKToken
+# Get-OKCommandLength -- nah way too specific to deserve sharing
+# Show-OKCode -code $c.commandText -CommentOffset $commandInfo.commentOffset; -- too specific?
+# Show-OKToken
+

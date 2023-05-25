@@ -12,6 +12,34 @@
 
 # Inbox (unclassified)
 
+
+- If there's a .ok-icon file -- we show that apparently.
+- If there's a .ok-showsummary -- we apply a show summary script (not currently editable but open source.)
+	- if should be pretty easy to understand.
+	- First it applies a rule... if we've just jumped into a folder, is there a file called ".ok-showSummary" present? Then we run the built in script, ok-showSummary -- and it does the following.
+	
+	- We run the locally sourced script - ok-showsummary.
+	
+	- Here's it's content.
+	
+	- parse the .ok file. If it's less than 15 rows, show at most the first 7 rows. Probably clear the screen first -- or write it in a part of the screen that doesn't seem to be in USE.
+		- If there's a currently running panel that has publicly registered an interest in subscribing to messages from a panel provider - and has been booked out by an accepted subscription request -- or has other licensing arrangements that let it run the panel on the current screen -- then it would broadcast to and it would be received and processed and displayed.
+		
+	- BEST format to speak to the dashboard:
+	
+	
+		- Customers - Projects - Tasks - Apps - SLOs
+			- OKAY the SLOS should be visually indicative of how many things we have booked in -- and how long until each of tehm expire.
+			- Next thing to expire is shown on first half of the panel square's background... A "brightness" indicator for how long until it expires.
+			- Everything should have varying brightness based on intensity -- even if it is successful. i.e. Whether green or red or an icon or a hyperlink -- what is the likelihood that you want to click on this?
+				- THAT is the calculation for brightness.
+				- How extraordinary is the current value?
+					- Caluclate that (by each component also looking at and rating their sub components AND OR rating itself by askig its parent what it's rating is.)
+				
+					
+			
+		
+
 - [ ] Look at all the lines that are longer than screen -
 	- find common substrings between any lines
 		- the removal of which would help the total numbers of

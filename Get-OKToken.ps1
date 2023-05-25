@@ -1,4 +1,4 @@
-function Get-Token {
+function Get-OKToken {
 	Param(
 		[Parameter(Mandatory,
 			ValueFromPipeline = $true,

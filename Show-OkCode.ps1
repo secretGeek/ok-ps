@@ -1,4 +1,4 @@
-. (Join-Path $PSScriptRoot "Get-Token.ps1")
+. (Join-Path $PSScriptRoot "Get-OKToken.ps1")
 . (Join-Path $PSScriptRoot "Show-OKToken.ps1")
 
 function Show-OKCode {
@@ -13,6 +13,5 @@ function Show-OKCode {
 		[int]$MaxKeyLength
 
 	)
-
-	Get-Token $code | Show-OKToken -debugMode:$debugMode -CommentOffset $CommentOffset -MaxKeyLength $MaxKeyLength;
+	Get-OKToken $code | Show-OKToken -debugMode:$debugMode -CommentOffset $CommentOffset -MaxKeyLength $MaxKeyLength;
 }

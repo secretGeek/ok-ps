@@ -1,4 +1,4 @@
-function Get-CommandLength {
+function Get-OKCommandLength {
     Param(
         [Parameter(Mandatory,
             ValueFromPipeline = $true,
@@ -14,7 +14,7 @@ function Get-CommandLength {
                 return $upto;
             }
             else {
-                $upto = $token.Extent.EndColumnNumber;
+                $upto = ($token.Extent.EndColumnNumber - 1);
             }
         }
         return $upto;

@@ -2,6 +2,8 @@
 echo "This one has arguments, try 'ok 2 {your message}'"
 echo "hello $arg" # example of an argument!
 echo "I $($arg[0]) the $($arg[1])" # pass two arguments, e.g. 'ok 3 am walrus'
+echo "I $($arg[0]) the $($arg[1])" # pass two arguments, e.g. 'ok 3 am walrus'
+
 # Named commands! These are fun! Try "ok greeting"
 greeting: write-host "Hello from the computer" -f yellow
 reply: write-host "Hello $arg" # named command with an arguments
