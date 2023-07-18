@@ -2,47 +2,80 @@
 . (Join-Path $PSScriptRoot "Show-OKName.ps1")
 
 # Write a scrap of text, that is part of a token (may be the entire token)
-function Write-OKScrap ( $scrap , $token, $debugMode) {
+function Write-OKScrap($scrap, $token, $debugMode) {
 	$tokenColor = (Get-OKTokenColor $token.Kind $token.TokenFlags $debugMode);
-	$quoteColor = "Cyan";
+	$quoteColor = [System.ConsoleColor]::Cyan;
+	$dollarColor = [System.ConsoleColor]::Gray;
+	$secondTokenColor = [System.ConsoleColor]::DarkCyan;
+	$commentHashColor = [System.ConsoleColor]::Green;
 
 	# Controversial! Write '$' and '#' (at start of Variable and Comment respectively)
-	#  in a different color to the rest of the variable/comment.
+	#  in a **different** color to the rest of the variable/comment!
 	if ($token.Kind -eq [System.Management.Automation.Language.TokenKind]::Variable -and
 		$scrap -like '$*') {
-		$dollarColor = "Cyan";
 		Write-Host '$' -ForegroundColor $dollarColor -NoNewline
-		$secondTokenColor = "DarkCyan";
 
-		Show-Name ($scrap.Substring(1)) -ForegroundColor $tokenColor -SecondForeGroundColor $secondTokenColor -NoNewline
+
+		# Very *very* controversial -- different pascalCaseWordsAreDifferentColors !!
+		Show-OKName ($scrap.Substring(1)) -ForegroundColor $tokenColor -SecondForeGroundColor $secondTokenColor -NoNewline -DebugMode $debugMode;
 	}
+	elseif ($token.Kind -eq [System.Management.Automation.Language.TokenKind]::DollarParen -and
+		$scrap -like '$*') {
+		# special case for '$(   )'  -- that's a `dollarParen` (and later, an `RParen`)
+		# We use our 'dollarColor' for the dollar in '$(' too -- in contradistinction to other highlighters.
+		Write-Host '$' -ForegroundColor $dollarColor -NoNewline
+		# write the rest of it in the default token color...
+		Write-Host ($scrap.Substring(1)) -ForegroundColor $tokenColor -NoNewline
+	}
+
 	elseif ($token.Kind -eq [System.Management.Automation.Language.TokenKind]::Comment -and
 		$scrap -like '#*') {
-		Write-Host '#' -ForegroundColor Green -NoNewline
+		Write-Host '#' -ForegroundColor $commentHashColor -NoNewline
 		Write-Host ($scrap.Substring(1)) -ForegroundColor $tokenColor -NoNewline
 	}
 	elseif (
 		($token.Kind -eq [System.Management.Automation.Language.TokenKind]::StringExpandable -or
 		$token.Kind -eq [System.Management.Automation.Language.TokenKind]::StringLiteral -or
 		$token.Kind -eq [System.Management.Automation.Language.TokenKind]::HereStringExpandable) -and
-		($scrap -like '"*' -or $scrap -like '*"' -or $scrap -like '''*' -or $scrap -like '*''')) {
-		if ($scrap -like '"*' -or $scrap -like '''*') {
-			Write-Host ($scrap.Substring(0, 1)) -ForegroundColor $quoteColor -NoNewline
+		($scrap -like '"*' -or
+		$scrap -like '*"' -or
+		$scrap -like '''*' -or
+		$scrap -like '*''' -or
+		$scrap -like '@*' -or
+		$scrap -like '*@')) {
+		# Controversial: Write quote characters at start and end of strings in a different color.
+		# Even VS Code doesn't attempt this.
+
+		if ($scrap -like '"*' -or $scrap -like '''*' -or $scrap -like '@*') {
+			# Starts with a quote, or a here-string '@' -- write the start character in special color
+			Write-Host ($scrap.Substring(0, 1)) -ForegroundColor $quoteColor -NoNewline;
 		}
 		else {
-			Write-Host ($scrap.Substring(0, 1)) -ForegroundColor $tokenColor -NoNewline
+			# Write the first character in regular color...
+			Write-Host ($scrap.Substring(0, 1)) -ForegroundColor $tokenColor -NoNewline;
 		}
-		if ($scrap -like '*"' -or $scrap -like '*''' -and $scrap.length -gt 1) {
-			Write-Host ($scrap.Substring(1, $scrap.Length - 2)) -ForegroundColor $tokenColor -NoNewline
-			Write-Host ($scrap.Substring($scrap.Length - 1)) -ForegroundColor $quoteColor -NoNewline
+
+		# At this point we've written precisely one character of our string.
+
+		if ($scrap -like '*"' -or $scrap -like '*''' -or $scrap -like '*@' -and $scrap.length -gt 1) {
+			# Ends with a quote or here-string '@' ? -- write the rest *before* the quote... in 'regular' color
+			Write-Host ($scrap.Substring(1, $scrap.Length - 2)) -ForegroundColor $tokenColor -NoNewline;
+			# ... and then write that final character in special color.
+			Write-Host ($scrap.Substring($scrap.Length - 1)) -ForegroundColor $quoteColor -NoNewline;
 		}
 		elseif ($scrap.length -gt 1) {
-			Write-Host ($scrap.Substring(1)) -ForegroundColor $tokenColor -NoNewline
+			# just write the remainder in regular color
+			Write-Host ($scrap.Substring(1)) -ForegroundColor $tokenColor -NoNewline;
 		}
 	}
 	else {
-		Write-Host ($scrap) -ForegroundColor $tokenColor -NoNewline
+		# Regular way to write a token in a single color:
+		Write-Host ($scrap) -ForegroundColor $tokenColor -NoNewline;
 	}
+
+	# Consider: VS Code colors brackets/braces/parens according to their 'depth' 
+	# -- cycling between 3 colors (Yellow, Pink, Blue...)
+	# this makes "brace matching" easier for the coder.
 }
 
 
@@ -79,7 +112,6 @@ function Show-OKToken {
 	}
 	Process {
 		ForEach ($token in $tokens) {
-			#$tokenColor = (Get-TokenColor $token.Kind $token.TokenFlags $debugMode);
 
 			if ($token.Extent.StartLineNumber -gt $lineNum) {
 				$charNum = 1;
@@ -103,7 +135,7 @@ function Show-OKToken {
 				}
 				$commentShown = $true;
 				if ($numSpaces -gt 0) {
-					#Write-Host ("_" * $numSpaces) -NoNewline -f red;
+					# Write-Host ("_" * $numSpaces) -NoNewline -f red;
 					Write-Host (" " * $numSpaces) -NoNewline;
 				}
 			}
@@ -112,7 +144,7 @@ function Show-OKToken {
 					$numSpaces = ($token.Extent.StartColumnNumber - $charNum);
 
 					Write-Host (" " * $numSpaces) -NoNewline;
-					#Write-Host ("_" * $numSpaces) -NoNewline -f blue;
+					# Write-Host ("_" * $numSpaces) -NoNewline -f blue;
 					$charNum += $numSpaces;
 				}
 			}
@@ -151,24 +183,25 @@ function Show-OKToken {
 						}
 					}
 
+					# Here is the recursive part... 
+					# In the comment above, `t1` was simply "$myName" -- but it could be a complex
+					# expression containing its own nested tokens... e.g. "$($myName)" (and much much more!)
+					# So we need to recurse, and have Show-OKToken show that t1...
 					Show-OKToken $innerToken -charNumX:$innerToken.Extent.StartColumnNumber -debugMode:$debugMode -CommentOffset $CommentOffset -MaxKeyLength $MaxKeyLength;
 					$upTo = $innerToken.Extent.EndOffset;
 				}
 
 				if ($upTo -lt ($token.Text.Length + $tokenStartOffset)) {
-					# Write the 'after' (see section above)
-					#Write-Host $token.Text.Substring($upTo - $tokenStartOffset) -f $tokenColor -n;
+					# Write the 'after' (see comment section above)
 					Write-OKScrap $token.Text.Substring($upTo - $tokenStartOffset) $token $debugMode;
 				}
 			}
 			else {
 				if ($token.Kind -eq [System.Management.Automation.Language.TokenKind]::Comment) {
-					#Write-Host ($token.Text.TrimStart()) -ForegroundColor $tokenColor -NoNewline
 					Write-OKScrap ($token.Text.TrimStart()) $token $debugMode;
 				}
 				else {
 					Write-OKScrap ($token.Text.TrimStart()) $token $debugMode;
-					#Write-Host ($token.Text) -ForegroundColor $tokenColor -NoNewline
 				}
 			}
 
